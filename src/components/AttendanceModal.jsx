@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Trash2, CalendarCheck } from "lucide-react";
 import Modal from "./Modal";
 import ConfirmDialog from "./ConfirmDialog";
+import { buildReceiptWhatsAppLink } from "../utils/whatsapp";
 
 const PAYMENT_METHODS = ["كاش", "إنستا باي", "فودافون كاش"];
 const SUBSCRIPTION_DAYS = 30;
@@ -10,6 +11,20 @@ function addDays(dateString, days) {
   const date = new Date(dateString);
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+function WhatsAppIcon({ size = 14 }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2Zm5.8 14.03c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11.11-1.79-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.73-2.09.99-2.37c.26-.28.57-.35.76-.35.19 0 .38 0 .54.01.17.01.4-.07.63.48.24.57.81 1.97.88 2.11.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.52 1.9 1.05.94 1.93 1.23 2.21 1.37.28.14.44.12.61-.07.17-.19.71-.83.9-1.11.19-.28.38-.24.63-.14.26.09 1.65.78 1.93.92.28.14.47.21.54.33.07.12.07.68-.17 1.36Z" />
+    </svg>
+  );
 }
 
 /**
@@ -22,6 +37,7 @@ export default function AttendanceModal({
   open,
   onClose,
   student,
+  groupName,
   onAdd,
   onDelete,
 }) {
@@ -58,6 +74,19 @@ export default function AttendanceModal({
   if (!student) return null;
 
   const subscriptions = student.subscriptions || [];
+
+  function handleSendReceipt(sub) {
+    const link = buildReceiptWhatsAppLink({
+      studentName: student.name,
+      groupName,
+      price: student.price,
+      startDate: sub.startDate,
+      endDate: sub.endDate,
+      paymentMethod: sub.paymentMethod,
+      parentPhone: student.parentPhone,
+    });
+    window.open(link, "_blank", "noopener,noreferrer");
+  }
 
   return (
     <>
@@ -165,14 +194,24 @@ export default function AttendanceModal({
                         {sub.paymentMethod}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setDeletingSubscription(sub)}
-                      className="flex items-center gap-1 self-start rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 sm:self-auto"
-                    >
-                      <Trash2 size={14} />
-                      حذف
-                    </button>
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleSendReceipt(sub)}
+                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-green-600 hover:bg-green-50"
+                      >
+                        <WhatsAppIcon size={14} />
+                        ايصال
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeletingSubscription(sub)}
+                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 size={14} />
+                        حذف
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
