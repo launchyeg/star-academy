@@ -1,4 +1,4 @@
-# Star Academy Dashboard
+# Star Academy
 
 Des
 
@@ -64,7 +64,7 @@ src/
 | `/dashboard/groups`       | All Groups                |
 | `/dashboard/groups/:id`   | Group Details             |
 
-## 5. ملاحظات تقنية
+## 5. Technical Notes
 
 - The application's general orientation is RTL (`dir="rtl"`), and the side menu is always on the right side of the screen. - The font used is **Tajawal** (loaded from Google Fonts) to best support the appearance of Arabic text.
 

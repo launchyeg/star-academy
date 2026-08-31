@@ -1,9 +1,10 @@
-import { Pencil, Trash2, UserRound } from 'lucide-react'
+import { CalendarCheck, Pencil, Trash2, UserRound } from 'lucide-react'
 
 /**
- * Responsive table listing the students of a group, with edit/delete actions.
+ * Responsive table listing the students of a group, with edit/delete actions
+ * and an "الحضور" action that opens the attendance/subscription card.
  */
-export default function StudentTable({ students, onEdit, onDelete }) {
+export default function StudentTable({ students, onEdit, onDelete, onAttendance }) {
   if (students.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
@@ -25,6 +26,7 @@ export default function StudentTable({ students, onEdit, onDelete }) {
               <th className="px-5 py-3 font-medium">رقم هاتف الطالب</th>
               <th className="px-5 py-3 font-medium">رقم هاتف ولي الأمر</th>
               <th className="px-5 py-3 font-medium">سعر الاشتراك</th>
+              <th className="px-5 py-3 font-medium">الحضور</th>
               <th className="px-5 py-3 font-medium">الإجراءات</th>
             </tr>
           </thead>
@@ -39,6 +41,21 @@ export default function StudentTable({ students, onEdit, onDelete }) {
                   {student.parentPhone}
                 </td>
                 <td className="px-5 py-3.5">{student.price} ج.م</td>
+                <td className="px-5 py-3.5">
+                  <button
+                    type="button"
+                    onClick={() => onAttendance(student)}
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
+                  >
+                    <CalendarCheck size={14} />
+                    الحضور
+                    {student.subscriptions?.length > 0 && (
+                      <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                        {student.subscriptions.length}
+                      </span>
+                    )}
+                  </button>
+                </td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-2">
                     <button

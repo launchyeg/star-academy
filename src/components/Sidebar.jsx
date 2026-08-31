@@ -1,11 +1,11 @@
-import { NavLink } from 'react-router-dom'
-import { LayoutGrid, PlusCircle, Users2, Star } from 'lucide-react'
+import { NavLink } from "react-router-dom";
+import { LayoutGrid, PlusCircle, Users2, Star } from "lucide-react";
 
 const navItems = [
-  { to: '/dashboard', label: 'نظرة عامة', icon: LayoutGrid, end: true },
-  { to: '/dashboard/create-group', label: 'إنشاء مجموعة', icon: PlusCircle },
-  { to: '/dashboard/groups', label: 'المجموعات', icon: Users2 },
-]
+  { to: "/dashboard", label: "نظرة عامة", icon: LayoutGrid, end: true },
+  { to: "/dashboard/create-group", label: "إنشاء مجموعة", icon: PlusCircle },
+  { to: "/dashboard/groups", label: "المجموعات", icon: Users2 },
+];
 
 /**
  * Right-side navigation sidebar for the dashboard (RTL layout).
@@ -32,18 +32,18 @@ export default function Sidebar({ onNavigate }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               [
-                'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
+                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                 isActive
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800',
-              ].join(' ')
+                  ? "bg-primary-50 text-primary-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
+              ].join(" ")
             }
           >
             {({ isActive }) => (
               <>
                 <item.icon
                   size={19}
-                  className={isActive ? 'text-primary-600' : 'text-slate-400'}
+                  className={isActive ? "text-primary-600" : "text-slate-400"}
                 />
                 <span>{item.label}</span>
               </>
@@ -53,8 +53,19 @@ export default function Sidebar({ onNavigate }) {
       </nav>
 
       <div className="border-t border-slate-100 px-6 py-4">
-        <p className="text-xs text-slate-300">Star Academy © 2026</p>
+        <p className="text-xs text-slate-300">
+          Star Academy © 2026 Developed by{" "}
+          <a
+            href="https://aaaportfolio.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold hover:underline"
+          >
+            Launchy
+          </a>{" "}
+          | v1.0.0
+        </p>
       </div>
     </aside>
-  )
+  );
 }

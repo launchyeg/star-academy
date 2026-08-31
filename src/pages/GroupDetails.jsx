@@ -4,6 +4,7 @@ import { UserPlus, Users2, ChevronRight } from 'lucide-react'
 import { useAcademy } from '../context/AcademyContext'
 import StudentTable from '../components/StudentTable'
 import AddStudentModal from '../components/AddStudentModal'
+import AttendanceModal from '../components/AttendanceModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 /**
@@ -11,16 +12,19 @@ import ConfirmDialog from '../components/ConfirmDialog'
  */
 export default function GroupDetails() {
   const { id } = useParams()
-  const { getGroup, addStudent, updateStudent, deleteStudent } = useAcademy()
+  const { getGroup, addStudent, updateStudent, deleteStudent, addSubscription, deleteSubscription } = useAcademy()
   const group = getGroup(id)
 
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editingStudent, setEditingStudent] = useState(null)
   const [deletingStudent, setDeletingStudent] = useState(null)
+  const [attendanceStudentId, setAttendanceStudentId] = useState(null)
 
   if (!group) {
     return <Navigate to="/dashboard/groups" replace />
   }
+
+  const attendanceStudent = group.students.find((s) => String(s.id) === String(attendanceStudentId)) || null
 
   function handleAddStudent(studentData) {
     addStudent(group.id, studentData)
@@ -66,6 +70,7 @@ export default function GroupDetails() {
         students={group.students}
         onEdit={(student) => setEditingStudent(student)}
         onDelete={(student) => setDeletingStudent(student)}
+        onAttendance={(student) => setAttendanceStudentId(student.id)}
       />
 
       <AddStudentModal open={isAddOpen} onClose={() => setIsAddOpen(false)} onSubmit={handleAddStudent} />
@@ -83,6 +88,14 @@ export default function GroupDetails() {
         onConfirm={() => deleteStudent(group.id, deletingStudent.id)}
         title="حذف الطالب"
         message={`هل أنت متأكد من حذف الطالب "${deletingStudent?.name}"؟ لا يمكن التراجع عن هذا الإجراء.`}
+      />
+
+      <AttendanceModal
+        open={Boolean(attendanceStudentId)}
+        onClose={() => setAttendanceStudentId(null)}
+        student={attendanceStudent}
+        onAdd={(subscription) => addSubscription(group.id, attendanceStudentId, subscription)}
+        onDelete={(subscriptionId) => deleteSubscription(group.id, attendanceStudentId, subscriptionId)}
       />
     </div>
   )

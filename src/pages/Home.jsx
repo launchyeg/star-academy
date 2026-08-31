@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { Link } from "react-router-dom";
+import { Star } from "lucide-react";
 
 /**
  * Minimal public landing page with navbar, welcome message, and footer.
@@ -13,7 +13,9 @@ export default function Home() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-white">
               <Star size={18} fill="currentColor" strokeWidth={0} />
             </div>
-            <span className="text-base font-bold text-slate-800">Star Academy</span>
+            <span className="text-base font-bold text-slate-800">
+              Star Academy
+            </span>
           </div>
 
           <Link
@@ -31,14 +33,23 @@ export default function Home() {
             مرحبًا بك في Star Academy
           </h1>
           <p className="mx-auto mt-4 max-w-md text-slate-500">
-            منصة إدارة أكاديمية بسيطة وحديثة لمتابعة المجموعات والطلاب بكل سهولة.
+            منصة إدارة أكاديمية بسيطة وحديثة لمتابعة المجموعات والطلاب بكل
+            سهولة.
           </p>
         </div>
       </main>
 
       <footer className="border-t border-slate-100 bg-white py-6 text-center text-sm text-slate-400">
-        © 2026 Star Academy. جميع الحقوق محفوظة.
+        Star Academy © 2026 Developed by{" "}
+        <a
+          href="https://aaaportfolio.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold hover:underline"
+        >
+          Launchy
+        </a>
       </footer>
     </div>
-  )
+  );
 }

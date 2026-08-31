@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 /**
  * Generic centered modal shell used by AddStudentModal and ConfirmDialog.
  */
-export default function Modal({ open, onClose, title, children }) {
+export default function Modal({ open, onClose, title, children, maxWidth = 'max-w-md' }) {
   return (
     <AnimatePresence>
       {open && (
@@ -16,7 +16,7 @@ export default function Modal({ open, onClose, title, children }) {
           onClick={onClose}
         >
           <motion.div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className={`w-full ${maxWidth} rounded-2xl bg-white p-6 shadow-xl`}
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}

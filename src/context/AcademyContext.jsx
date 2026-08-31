@@ -57,6 +57,45 @@ export function AcademyProvider({ children }) {
     )
   }
 
+  function addSubscription(groupId, studentId, subscription) {
+    setGroups((prev) =>
+      prev.map((g) =>
+        String(g.id) === String(groupId)
+          ? {
+              ...g,
+              students: g.students.map((s) =>
+                String(s.id) === String(studentId)
+                  ? { ...s, subscriptions: [...(s.subscriptions || []), { id: generateId(), ...subscription }] }
+                  : s
+              ),
+            }
+          : g
+      )
+    )
+  }
+
+  function deleteSubscription(groupId, studentId, subscriptionId) {
+    setGroups((prev) =>
+      prev.map((g) =>
+        String(g.id) === String(groupId)
+          ? {
+              ...g,
+              students: g.students.map((s) =>
+                String(s.id) === String(studentId)
+                  ? {
+                      ...s,
+                      subscriptions: (s.subscriptions || []).filter(
+                        (sub) => String(sub.id) !== String(subscriptionId)
+                      ),
+                    }
+                  : s
+              ),
+            }
+          : g
+      )
+    )
+  }
+
   const totals = useMemo(() => {
     const totalGroups = groups.length
     const totalStudents = groups.reduce((sum, g) => sum + g.students.length, 0)
@@ -75,6 +114,8 @@ export function AcademyProvider({ children }) {
     addStudent,
     updateStudent,
     deleteStudent,
+    addSubscription,
+    deleteSubscription,
   }
 
   return <AcademyContext.Provider value={value}>{children}</AcademyContext.Provider>

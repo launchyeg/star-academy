@@ -19,6 +19,14 @@ export const initialGroups = [
         phone: '01012345678',
         parentPhone: '01098765432',
         price: 350,
+        subscriptions: [
+          {
+            id: 1,
+            startDate: '2026-08-01',
+            endDate: '2026-08-31',
+            paymentMethod: 'كاش',
+          },
+        ],
       },
       {
         id: 2,
@@ -26,6 +34,14 @@ export const initialGroups = [
         phone: '01123456789',
         parentPhone: '01187654321',
         price: 350,
+        subscriptions: [
+          {
+            id: 2,
+            startDate: '2026-08-05',
+            endDate: '2026-09-04',
+            paymentMethod: 'إنستا باي',
+          },
+        ],
       },
     ],
   },
@@ -39,6 +55,7 @@ export const initialGroups = [
         phone: '01234567890',
         parentPhone: '01276543210',
         price: 300,
+        subscriptions: [],
       },
     ],
   },

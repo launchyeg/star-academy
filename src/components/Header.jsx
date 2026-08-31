@@ -1,4 +1,4 @@
-import { Menu } from 'lucide-react'
+import { Menu } from "lucide-react";
 
 /**
  * Simple top bar: mobile sidebar toggle on one side, admin identity on the other.
@@ -22,8 +22,10 @@ export default function Header({ title, onMenuClick }) {
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
           A
         </div>
-        <span className="hidden text-sm font-medium text-slate-700 sm:inline">Admin</span>
+        <span className="hidden text-sm font-medium text-slate-700 sm:inline">
+          Admin
+        </span>
       </div>
     </header>
-  )
+  );
 }
