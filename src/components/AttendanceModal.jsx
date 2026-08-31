@@ -1,10 +1,21 @@
-import { useEffect, useState } from "react";
-import { Trash2, CalendarCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Trash2,
+  CalendarCheck,
+  Calendar,
+  Banknote,
+  CreditCard,
+  Smartphone,
+} from "lucide-react";
 import Modal from "./Modal";
 import ConfirmDialog from "./ConfirmDialog";
 import { buildReceiptWhatsAppLink } from "../utils/whatsapp";
 
-const PAYMENT_METHODS = ["كاش", "إنستا باي", "فودافون كاش"];
+const PAYMENT_METHODS = [
+  { value: "كاش", icon: Banknote },
+  { value: "إنستا باي", icon: CreditCard },
+  { value: "فودافون كاش", icon: Smartphone },
+];
 const SUBSCRIPTION_DAYS = 30;
 
 function addDays(dateString, days) {
@@ -27,6 +38,78 @@ function WhatsAppIcon({ size = 14 }) {
   );
 }
 
+/** Styled date input: native `<input type="date">` with a custom calendar
+ * icon and a click-anywhere-to-open picker, instead of the plain browser box. */
+function DateField({ label, value, onChange, disabled, hint }) {
+  const inputRef = useRef(null);
+
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-slate-600">
+        {label}
+      </label>
+      <div
+        onClick={() => !disabled && inputRef.current?.showPicker?.()}
+        className={`relative flex items-center rounded-xl border transition ${
+          disabled
+            ? "cursor-not-allowed border-slate-200 bg-slate-100"
+            : "cursor-pointer border-slate-200 bg-white focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100"
+        }`}
+      >
+        <Calendar
+          size={16}
+          className={`pointer-events-none ms-3.5 shrink-0 ${
+            disabled ? "text-slate-400" : "text-slate-400"
+          }`}
+        />
+        <input
+          ref={inputRef}
+          type="date"
+          value={value}
+          disabled={disabled}
+          readOnly={disabled}
+          title={hint}
+          onChange={onChange}
+          className="w-full appearance-none bg-transparent px-3 py-2.5 text-sm text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-500 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
+        />
+      </div>
+    </div>
+  );
+}
+
+/** Payment method picker as an icon + label segmented control, instead of a
+ * plain native `<select>`. */
+function PaymentMethodField({ value, onChange }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-slate-600">
+        طريقة الدفع
+      </label>
+      <div className="grid grid-cols-3 gap-2">
+        {PAYMENT_METHODS.map(({ value: method, icon: Icon }) => {
+          const active = value === method;
+          return (
+            <button
+              key={method}
+              type="button"
+              onClick={() => onChange(method)}
+              aria-pressed={active}
+              className={`flex flex-col items-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-medium transition ${
+                active
+                  ? "border-primary-400 bg-primary-50 text-primary-700 ring-2 ring-primary-100"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              <Icon size={18} className={active ? "text-primary-600" : "text-slate-400"} />
+              {method}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Card/modal for managing a single student's attendance/subscription records.
  * Supports adding a new monthly subscription (start date → auto end date +30 days,
@@ -42,14 +125,14 @@ export default function AttendanceModal({
   onDelete,
 }) {
   const [startDate, setStartDate] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
+  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0].value);
   const [error, setError] = useState("");
   const [deletingSubscription, setDeletingSubscription] = useState(null);
 
   useEffect(() => {
     if (open) {
       setStartDate("");
-      setPaymentMethod(PAYMENT_METHODS[0]);
+      setPaymentMethod(PAYMENT_METHODS[0].value);
       setError("");
       setDeletingSubscription(null);
     }
@@ -67,7 +150,7 @@ export default function AttendanceModal({
 
     onAdd({ startDate, endDate, paymentMethod });
     setStartDate("");
-    setPaymentMethod(PAYMENT_METHODS[0]);
+    setPaymentMethod(PAYMENT_METHODS[0].value);
     setError("");
   }
 
@@ -106,48 +189,20 @@ export default function AttendanceModal({
             </h3>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-600">
-                  تاريخ البداية
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-600">
-                  تاريخ الانتهاء
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  disabled
-                  readOnly
-                  title="يتم حسابه تلقائيًا بعد 30 يومًا من تاريخ البداية"
-                  className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-500 outline-none"
-                />
-              </div>
+              <DateField
+                label="تاريخ البداية"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <DateField
+                label="تاريخ الانتهاء"
+                value={endDate}
+                disabled
+                hint="يتم حسابه تلقائيًا بعد 30 يومًا من تاريخ البداية"
+              />
             </div>
 
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-600">
-                طريقة الدفع
-              </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
-              >
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method} value={method}>
-                    {method}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <PaymentMethodField value={paymentMethod} onChange={setPaymentMethod} />
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
