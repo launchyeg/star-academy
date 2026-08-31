@@ -1,0 +1,89 @@
+import { useState } from 'react'
+import { useParams, Link, Navigate } from 'react-router-dom'
+import { UserPlus, Users2, ChevronRight } from 'lucide-react'
+import { useAcademy } from '../context/AcademyContext'
+import StudentTable from '../components/StudentTable'
+import AddStudentModal from '../components/AddStudentModal'
+import ConfirmDialog from '../components/ConfirmDialog'
+
+/**
+ * Single group page: group info, "Add student" action, and the students table.
+ */
+export default function GroupDetails() {
+  const { id } = useParams()
+  const { getGroup, addStudent, updateStudent, deleteStudent } = useAcademy()
+  const group = getGroup(id)
+
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [editingStudent, setEditingStudent] = useState(null)
+  const [deletingStudent, setDeletingStudent] = useState(null)
+
+  if (!group) {
+    return <Navigate to="/dashboard/groups" replace />
+  }
+
+  function handleAddStudent(studentData) {
+    addStudent(group.id, studentData)
+  }
+
+  function handleEditStudent(studentData) {
+    updateStudent(group.id, editingStudent.id, studentData)
+    setEditingStudent(null)
+  }
+
+  return (
+    <div className="space-y-6">
+      <Link
+        to="/dashboard/groups"
+        className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600"
+      >
+        <ChevronRight size={16} />
+        العودة إلى المجموعات
+      </Link>
+
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+            <Users2 size={22} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">{group.name}</h2>
+            <p className="mt-1 text-sm text-slate-400">عدد الطلاب: {group.students.length}</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsAddOpen(true)}
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
+        >
+          <UserPlus size={17} />
+          إضافة طالب
+        </button>
+      </div>
+
+      <StudentTable
+        students={group.students}
+        onEdit={(student) => setEditingStudent(student)}
+        onDelete={(student) => setDeletingStudent(student)}
+      />
+
+      <AddStudentModal open={isAddOpen} onClose={() => setIsAddOpen(false)} onSubmit={handleAddStudent} />
+
+      <AddStudentModal
+        open={Boolean(editingStudent)}
+        onClose={() => setEditingStudent(null)}
+        onSubmit={handleEditStudent}
+        initialData={editingStudent}
+      />
+
+      <ConfirmDialog
+        open={Boolean(deletingStudent)}
+        onClose={() => setDeletingStudent(null)}
+        onConfirm={() => deleteStudent(group.id, deletingStudent.id)}
+        title="حذف الطالب"
+        message={`هل أنت متأكد من حذف الطالب "${deletingStudent?.name}"؟ لا يمكن التراجع عن هذا الإجراء.`}
+      />
+    </div>
+  )
+}
