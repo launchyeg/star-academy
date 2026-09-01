@@ -1,58 +1,68 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
-const AUTH_STORAGE_KEY = 'star_academy_auth'
-
 /**
- * Frontend-only auth, checked against VITE_ADMIN_USERNAME / VITE_ADMIN_PASSWORD
- * from the local .env file. There is no backend/API call here — this is a
- * temporary client-side gate and will later be replaced by a real auth service.
- * The logged-in flag is persisted to localStorage so a page refresh keeps the
- * admin signed in.
+ * Real auth backed by Supabase (email/password). The admin account is
+ * created directly in the Supabase dashboard (Authentication > Users) —
+ * there is no public sign-up. The session is managed by supabase-js itself
+ * (persisted under the hood), so a page refresh keeps the admin signed in
+ * until they log out or the session expires.
  */
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => localStorage.getItem(AUTH_STORAGE_KEY) === 'true'
-  )
-  const [admin, setAdmin] = useState(() => {
-    const savedUsername = localStorage.getItem(AUTH_STORAGE_KEY) === 'true'
-      ? localStorage.getItem('star_academy_admin_name')
-      : null
-    return savedUsername ? { name: savedUsername } : null
-  })
+  const [session, setSession] = useState(null)
+  // True until the initial session check finishes, so ProtectedRoute doesn't
+  // bounce a still-logged-in admin to /login while that check is in flight.
+  const [loading, setLoading] = useState(true)
 
-  function login(username, password) {
-    if (!username.trim() || !password.trim()) {
-      return { success: false, message: 'من فضلك أدخل اسم المستخدم وكلمة المرور' }
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setLoading(false)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function login(email, password) {
+    if (!email.trim() || !password.trim()) {
+      return { success: false, message: 'من فضلك أدخل البريد الإلكتروني وكلمة المرور' }
     }
 
-    const validUsername = import.meta.env.VITE_ADMIN_USERNAME
-    const validPassword = import.meta.env.VITE_ADMIN_PASSWORD
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
 
-    if (username !== validUsername || password !== validPassword) {
-      return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' }
+    if (error) {
+      return { success: false, message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' }
     }
 
-    setIsAuthenticated(true)
-    setAdmin({ name: username })
-    localStorage.setItem(AUTH_STORAGE_KEY, 'true')
-    localStorage.setItem('star_academy_admin_name', username)
+    setSession(data.session)
     return { success: true }
   }
 
-  function logout() {
-    setIsAuthenticated(false)
-    setAdmin(null)
-    localStorage.removeItem(AUTH_STORAGE_KEY)
-    localStorage.removeItem('star_academy_admin_name')
+  async function logout() {
+    await supabase.auth.signOut()
+    setSession(null)
   }
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, admin, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = {
+    isAuthenticated: Boolean(session),
+    admin: session ? { name: session.user.email } : null,
+    loading,
+    login,
+    logout,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

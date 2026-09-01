@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
  * Simple top bar: mobile sidebar toggle on one side, admin identity + logout on the other.
  */
 export default function Header({ title, onMenuClick }) {
-  const { logout } = useAuth();
+  const { admin, logout } = useAuth();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -34,7 +34,7 @@ export default function Header({ title, onMenuClick }) {
             A
           </div>
           <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-            Admin
+            {admin?.name || "Admin"}
           </span>
         </div>
 

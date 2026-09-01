@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Star, Lock, User } from "lucide-react";
+import { Star, Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 /**
- * Mock login form. No real backend call — see AuthContext for details.
+ * Admin login form, backed by Supabase Auth (see AuthContext).
  */
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const result = login(username, password);
+    setSubmitting(true);
+    const result = await login(email, password);
+    setSubmitting(false);
     if (result.success) {
       navigate("/dashboard");
     } else {
@@ -44,18 +47,18 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-600">
-              اسم المستخدم
+              البريد الإلكتروني
             </label>
             <div className="relative">
-              <User
+              <Mail
                 size={18}
                 className="absolute top-1/2 right-3.5 -translate-y-1/2 text-slate-300"
               />
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="أدخل اسم المستخدم"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="أدخل البريد الإلكتروني"
                 className="w-full rounded-xl border border-slate-200 py-2.5 pl-4 pr-11 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
               />
             </div>
@@ -84,9 +87,10 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-primary-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+            disabled={submitting}
+            className="w-full rounded-xl bg-primary-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            تسجيل الدخول
+            {submitting ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"}
           </button>
         </form>
 

@@ -34,7 +34,7 @@ export default function Home() {
           <h1 className="text-3xl font-extrabold text-slate-800 sm:text-4xl">
             مرحبًا بك في The Star Academy
           </h1>
-          <p className="mx-auto mt-4 max-w-md text-slate-500">
+          <p className="mx-auto mt-4 max-w-lg text-slate-500">
             منصة إدارة أكاديمية بسيطة وحديثة لمتابعة المجموعات والطلاب بكل
             سهولة.
           </p>

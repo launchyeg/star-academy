@@ -2,11 +2,16 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 /**
- * Guards dashboard routes behind the mock frontend auth state.
- * Unauthenticated users are redirected back to the login page.
+ * Guards dashboard routes behind the real Supabase auth session.
+ * Waits for the initial session check to finish before deciding, so a
+ * refresh doesn't briefly bounce an already-logged-in admin to /login.
  */
 export default function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
+
+  if (loading) {
+    return null
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />

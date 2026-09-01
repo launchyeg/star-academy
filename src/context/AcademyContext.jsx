@@ -1,133 +1,175 @@
-import { createContext, useContext, useMemo, useState } from 'react'
-import { initialGroups, generateId } from '../data/mockData'
-import { createEmptyMonthRecords } from '../constants'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 const AcademyContext = createContext(null)
 
+// Nested select: one round trip fetches every group with its students and
+// each student's subscriptions, mirroring the shape the UI already expects.
+const GROUPS_SELECT = `
+  id, name,
+  students (
+    id, name, phone, parent_phone, price,
+    subscriptions (
+      id, start_date, end_date, payment_method, attendance, quizzes, final_exam, note
+    )
+  )
+`
+
+// The DB uses snake_case columns; the UI (built against the old mock data)
+// expects camelCase. These mappers keep that translation in one place so no
+// component needs to know the database's column names.
+function mapSubscription(row) {
+  return {
+    id: row.id,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    paymentMethod: row.payment_method,
+    attendance: row.attendance,
+    quizzes: row.quizzes,
+    finalExam: row.final_exam,
+    note: row.note,
+  }
+}
+
+function mapStudent(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    parentPhone: row.parent_phone,
+    price: row.price,
+    subscriptions: (row.subscriptions || []).map(mapSubscription),
+  }
+}
+
+function mapGroup(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    students: (row.students || []).map(mapStudent),
+  }
+}
+
 /**
- * Holds all academy data (groups + students) in React state.
- * This is a frontend-only in-memory store: refreshing the page resets it.
- * The API surface here is intentionally shaped so it can later be swapped
- * for real network calls without touching the components that consume it.
+ * Holds all academy data (groups + students + subscriptions), backed by
+ * Supabase (Postgres). Data is fetched on load and re-synced after every
+ * mutation, so `groups` always reflects what's actually in the database.
  */
 export function AcademyProvider({ children }) {
-  const [groups, setGroups] = useState(initialGroups)
+  const [groups, setGroups] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  function addGroup(name) {
-    const newGroup = { id: generateId(), name: name.trim(), students: [] }
-    setGroups((prev) => [...prev, newGroup])
-    return newGroup
+  async function refresh() {
+    const { data, error: fetchError } = await supabase
+      .from('groups')
+      .select(GROUPS_SELECT)
+      .order('created_at', { ascending: true })
+
+    if (fetchError) {
+      setError(fetchError.message)
+      return
+    }
+
+    setError(null)
+    setGroups((data || []).map(mapGroup))
+  }
+
+  useEffect(() => {
+    refresh().finally(() => setLoading(false))
+  }, [])
+
+  async function addGroup(name) {
+    const { data, error: insertError } = await supabase
+      .from('groups')
+      .insert({ name: name.trim() })
+      .select()
+      .single()
+    if (insertError) throw insertError
+
+    await refresh()
+    return mapGroup({ ...data, students: [] })
   }
 
   function getGroup(groupId) {
     return groups.find((g) => String(g.id) === String(groupId))
   }
 
-  function addStudent(groupId, student) {
-    setGroups((prev) =>
-      prev.map((g) =>
-        String(g.id) === String(groupId)
-          ? { ...g, students: [...g.students, { id: generateId(), ...student }] }
-          : g
-      )
-    )
+  async function addStudent(groupId, student) {
+    const { error: insertError } = await supabase.from('students').insert({
+      group_id: groupId,
+      name: student.name,
+      phone: student.phone,
+      parent_phone: student.parentPhone,
+      price: student.price,
+    })
+    if (insertError) throw insertError
+    await refresh()
   }
 
-  function updateStudent(groupId, studentId, updatedFields) {
-    setGroups((prev) =>
-      prev.map((g) =>
-        String(g.id) === String(groupId)
-          ? {
-              ...g,
-              students: g.students.map((s) =>
-                String(s.id) === String(studentId) ? { ...s, ...updatedFields } : s
-              ),
-            }
-          : g
-      )
-    )
+  async function updateStudent(groupId, studentId, updatedFields) {
+    const payload = {}
+    if ('name' in updatedFields) payload.name = updatedFields.name
+    if ('phone' in updatedFields) payload.phone = updatedFields.phone
+    if ('parentPhone' in updatedFields) payload.parent_phone = updatedFields.parentPhone
+    if ('price' in updatedFields) payload.price = updatedFields.price
+
+    const { error: updateError } = await supabase
+      .from('students')
+      .update(payload)
+      .eq('id', studentId)
+    if (updateError) throw updateError
+    await refresh()
   }
 
-  function deleteStudent(groupId, studentId) {
-    setGroups((prev) =>
-      prev.map((g) =>
-        String(g.id) === String(groupId)
-          ? { ...g, students: g.students.filter((s) => String(s.id) !== String(studentId)) }
-          : g
-      )
-    )
+  async function deleteStudent(groupId, studentId) {
+    const { error: deleteError } = await supabase.from('students').delete().eq('id', studentId)
+    if (deleteError) throw deleteError
+    await refresh()
   }
 
-  // Returns the new subscription's id synchronously, so callers can e.g.
-  // auto-expand its attendance/grades section right after creating it.
-  function addSubscription(groupId, studentId, subscription) {
-    const newSubscriptionId = generateId()
-    setGroups((prev) =>
-      prev.map((g) =>
-        String(g.id) === String(groupId)
-          ? {
-              ...g,
-              students: g.students.map((s) =>
-                String(s.id) === String(studentId)
-                  ? {
-                      ...s,
-                      subscriptions: [
-                        ...(s.subscriptions || []),
-                        { id: newSubscriptionId, ...subscription, ...createEmptyMonthRecords() },
-                      ],
-                    }
-                  : s
-              ),
-            }
-          : g
-      )
-    )
+  // Returns the new subscription's id, so callers can e.g. auto-expand its
+  // attendance/grades section right after creating it. The id is generated
+  // client-side (instead of waiting on the DB's default) so it's available
+  // as soon as the insert is confirmed, without a second round trip.
+  async function addSubscription(groupId, studentId, subscription) {
+    const newSubscriptionId = crypto.randomUUID()
+    const { error: insertError } = await supabase.from('subscriptions').insert({
+      id: newSubscriptionId,
+      student_id: studentId,
+      start_date: subscription.startDate,
+      end_date: subscription.endDate,
+      payment_method: subscription.paymentMethod,
+    })
+    if (insertError) throw insertError
+
+    await refresh()
     return newSubscriptionId
   }
 
-  function deleteSubscription(groupId, studentId, subscriptionId) {
-    setGroups((prev) =>
-      prev.map((g) =>
-        String(g.id) === String(groupId)
-          ? {
-              ...g,
-              students: g.students.map((s) =>
-                String(s.id) === String(studentId)
-                  ? {
-                      ...s,
-                      subscriptions: (s.subscriptions || []).filter(
-                        (sub) => String(sub.id) !== String(subscriptionId)
-                      ),
-                    }
-                  : s
-              ),
-            }
-          : g
-      )
-    )
+  async function deleteSubscription(groupId, studentId, subscriptionId) {
+    const { error: deleteError } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('id', subscriptionId)
+    if (deleteError) throw deleteError
+    await refresh()
   }
 
   // Commits attendance/quizzes/finalExam/note for one subscription (one month).
-  function updateSubscriptionRecords(groupId, studentId, subscriptionId, records) {
-    setGroups((prev) =>
-      prev.map((g) =>
-        String(g.id) === String(groupId)
-          ? {
-              ...g,
-              students: g.students.map((s) =>
-                String(s.id) === String(studentId)
-                  ? {
-                      ...s,
-                      subscriptions: (s.subscriptions || []).map((sub) =>
-                        String(sub.id) === String(subscriptionId) ? { ...sub, ...records } : sub
-                      ),
-                    }
-                  : s
-              ),
-            }
-          : g
-      )
-    )
+  async function updateSubscriptionRecords(groupId, studentId, subscriptionId, records) {
+    const payload = {}
+    if ('attendance' in records) payload.attendance = records.attendance
+    if ('quizzes' in records) payload.quizzes = records.quizzes
+    if ('finalExam' in records) payload.final_exam = records.finalExam
+    if ('note' in records) payload.note = records.note
+
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .update(payload)
+      .eq('id', subscriptionId)
+    if (updateError) throw updateError
+    await refresh()
   }
 
   const totals = useMemo(() => {
@@ -142,6 +184,8 @@ export function AcademyProvider({ children }) {
 
   const value = {
     groups,
+    loading,
+    error,
     totals,
     addGroup,
     getGroup,
@@ -151,6 +195,7 @@ export function AcademyProvider({ children }) {
     addSubscription,
     deleteSubscription,
     updateSubscriptionRecords,
+    refresh,
   }
 
   return <AcademyContext.Provider value={value}>{children}</AcademyContext.Provider>

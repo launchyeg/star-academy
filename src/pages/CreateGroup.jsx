@@ -13,7 +13,7 @@ export default function CreateGroup() {
   const { addGroup } = useAcademy();
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     if (!name.trim()) {
@@ -21,8 +21,12 @@ export default function CreateGroup() {
       return;
     }
 
-    const newGroup = addGroup(name);
-    navigate(`/dashboard/groups/${newGroup.id}`);
+    try {
+      const newGroup = await addGroup(name);
+      navigate(`/dashboard/groups/${newGroup.id}`);
+    } catch {
+      setError("حدث خطأ أثناء إنشاء المجموعة، حاول مرة أخرى");
+    }
   }
 
   return (

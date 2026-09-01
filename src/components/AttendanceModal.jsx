@@ -308,7 +308,7 @@ export default function AttendanceModal({
     setRecordsSaved(false);
   }
 
-  function handleAdd(e) {
+  async function handleAdd(e) {
     e.preventDefault();
 
     if (!startDate) {
@@ -316,21 +316,25 @@ export default function AttendanceModal({
       return;
     }
 
-    const newSubscriptionId = onAdd({ startDate, endDate, paymentMethod });
-    setStartDate("");
-    setPaymentMethod(PAYMENT_METHODS[0].value);
-    setError("");
+    try {
+      const newSubscriptionId = await onAdd({ startDate, endDate, paymentMethod });
+      setStartDate("");
+      setPaymentMethod(PAYMENT_METHODS[0].value);
+      setError("");
 
-    // Immediately open the new month's attendance/grades section so the
-    // admin can start recording it without hunting for it in the list.
-    if (newSubscriptionId != null) {
-      openRecordsFor({
-        id: newSubscriptionId,
-        attendance: [],
-        quizzes: [],
-        finalExam: "",
-        note: "",
-      });
+      // Immediately open the new month's attendance/grades section so the
+      // admin can start recording it without hunting for it in the list.
+      if (newSubscriptionId != null) {
+        openRecordsFor({
+          id: newSubscriptionId,
+          attendance: [],
+          quizzes: [],
+          finalExam: "",
+          note: "",
+        });
+      }
+    } catch {
+      setError("حدث خطأ أثناء إضافة الاشتراك، حاول مرة أخرى");
     }
   }
 
@@ -383,26 +387,34 @@ export default function AttendanceModal({
     setRecordsSaved(false);
   }
 
-  function handleSaveRecords() {
-    onUpdateSubscriptionRecords(expandedSubscriptionId, {
-      attendance: draftAttendance,
-      quizzes: draftQuizzes,
-      finalExam: draftFinalExam,
-      note: draftNote,
-    });
-    setRecordsSaved(true);
+  async function handleSaveRecords() {
+    try {
+      await onUpdateSubscriptionRecords(expandedSubscriptionId, {
+        attendance: draftAttendance,
+        quizzes: draftQuizzes,
+        finalExam: draftFinalExam,
+        note: draftNote,
+      });
+      setRecordsSaved(true);
+    } catch {
+      setRecordsSaved(false);
+    }
   }
 
-  function handleSendMonthlyReport(sub) {
+  async function handleSendMonthlyReport(sub) {
     // Persist whatever is currently entered before sending, so the report
     // always reflects what the parent is about to be told.
-    onUpdateSubscriptionRecords(sub.id, {
-      attendance: draftAttendance,
-      quizzes: draftQuizzes,
-      finalExam: draftFinalExam,
-      note: draftNote,
-    });
-    setRecordsSaved(true);
+    try {
+      await onUpdateSubscriptionRecords(sub.id, {
+        attendance: draftAttendance,
+        quizzes: draftQuizzes,
+        finalExam: draftFinalExam,
+        note: draftNote,
+      });
+      setRecordsSaved(true);
+    } catch {
+      setRecordsSaved(false);
+    }
 
     const link = buildMonthlyReportWhatsAppLink({
       studentName: student.name,

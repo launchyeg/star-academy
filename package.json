@@ -1,5 +1,5 @@
 {
-  "name": "star-academy",
+  "name": "the-star-academy",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,11 +10,12 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
+    "framer-motion": "^11.5.4",
+    "lucide-react": "^0.446.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
-    "lucide-react": "^0.446.0",
-    "framer-motion": "^11.5.4"
+    "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",
