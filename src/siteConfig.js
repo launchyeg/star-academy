@@ -10,7 +10,8 @@ export const siteConfig = {
     phone: "tel:+201223021102",
     whatsapp: "https://wa.me/+201223021102",
     tiktok: "https://www.tiktok.com/@user6279823226125?_r=1&_t=ZS-99N15WHFmGG",
-    instagram: "https://www.facebook.com/people/The-stars/61562949239650/",
+    instagram:
+      "https://www.instagram.com/the.stars98?utm_source=qr&igsi=Y3pmd2NycGxneXRi",
     facebook: "https://www.facebook.com/people/The-stars/61562949239650/",
   },
 
