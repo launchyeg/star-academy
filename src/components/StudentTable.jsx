@@ -1,19 +1,26 @@
-import { CalendarCheck, Pencil, Trash2, UserRound } from 'lucide-react'
+import { CalendarPlus, Pencil, Trash2, UserRound } from "lucide-react";
 
 /**
  * Responsive table listing the students of a group, with edit/delete actions
  * and an "الحضور" action that opens the attendance/subscription card.
  */
-export default function StudentTable({ students, onEdit, onDelete, onAttendance }) {
+export default function StudentTable({
+  students,
+  onEdit,
+  onDelete,
+  onAttendance,
+}) {
   if (students.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-300">
           <UserRound size={24} />
         </div>
-        <p className="text-sm text-slate-400">لا يوجد طلاب في هذه المجموعة بعد</p>
+        <p className="text-sm text-slate-400">
+          لا يوجد طلاب في هذه المجموعة بعد
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -26,13 +33,16 @@ export default function StudentTable({ students, onEdit, onDelete, onAttendance 
               <th className="px-5 py-3 font-medium">رقم هاتف الطالب</th>
               <th className="px-5 py-3 font-medium">رقم هاتف ولي الأمر</th>
               <th className="px-5 py-3 font-medium">سعر الاشتراك</th>
-              <th className="px-5 py-3 font-medium">الحضور</th>
+              <th className="px-5 py-3 font-medium">الاشتراكات والحضور</th>
               <th className="px-5 py-3 font-medium">الإجراءات</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {students.map((student) => (
-              <tr key={student.id} className="text-sm text-slate-700 transition-colors hover:bg-slate-50/60">
+              <tr
+                key={student.id}
+                className="text-sm text-slate-700 transition-colors hover:bg-slate-50/60"
+              >
                 <td className="px-5 py-3.5 font-medium">{student.name}</td>
                 <td className="px-5 py-3.5 text-slate-500" dir="ltr">
                   {student.phone}
@@ -47,8 +57,8 @@ export default function StudentTable({ students, onEdit, onDelete, onAttendance 
                     onClick={() => onAttendance(student)}
                     className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
                   >
-                    <CalendarCheck size={14} />
-                    الحضور
+                    <CalendarPlus size={14} />
+                    سجل التفاصيل
                     {student.subscriptions?.length > 0 && (
                       <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
                         {student.subscriptions.length}
@@ -82,5 +92,5 @@ export default function StudentTable({ students, onEdit, onDelete, onAttendance 
         </table>
       </div>
     </div>
-  )
+  );
 }

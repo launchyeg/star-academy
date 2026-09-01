@@ -6,10 +6,17 @@ import {
   Banknote,
   CreditCard,
   Smartphone,
+  ClipboardCheck,
+  GraduationCap,
+  Save,
+  Plus,
 } from "lucide-react";
 import Modal from "./Modal";
 import ConfirmDialog from "./ConfirmDialog";
-import { buildReceiptWhatsAppLink } from "../utils/whatsapp";
+import {
+  buildReceiptWhatsAppLink,
+  buildMonthlyReportWhatsAppLink,
+} from "../utils/whatsapp";
 
 const PAYMENT_METHODS = [
   { value: "كاش", icon: Banknote },
@@ -17,6 +24,7 @@ const PAYMENT_METHODS = [
   { value: "فودافون كاش", icon: Smartphone },
 ];
 const SUBSCRIPTION_DAYS = 30;
+const RECORD_SLOTS = 8;
 
 function addDays(dateString, days) {
   const date = new Date(dateString);
@@ -100,11 +108,112 @@ function PaymentMethodField({ value, onChange }) {
                   : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
-              <Icon size={18} className={active ? "text-primary-600" : "text-slate-400"} />
+              <Icon
+                size={18}
+                className={active ? "text-primary-600" : "text-slate-400"}
+              />
               {method}
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/** Attendance toggles + quiz/final-exam grade inputs, committed together via
+ * a single "save" action (mirrors the explicit-submit pattern used by the
+ * subscription form above it). */
+function AttendanceGradesSection({
+  attendance,
+  quizzes,
+  finalExam,
+  onToggleAttendance,
+  onQuizChange,
+  onFinalExamChange,
+  onSave,
+  saved,
+}) {
+  const presentCount = attendance.filter(Boolean).length;
+
+  return (
+    <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-700">الحضور والدرجات</h3>
+        {saved && (
+          <span className="text-xs font-medium text-green-600">تم الحفظ ✓</span>
+        )}
+      </div>
+
+      <div>
+        <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-600">
+          <ClipboardCheck size={15} className="text-slate-400" />
+          الحضور ({presentCount} من {attendance.length})
+        </label>
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+          {attendance.map((present, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => onToggleAttendance(index)}
+              title={`الحصة ${index + 1}: ${present ? "حاضر" : "غائب"}`}
+              className={`rounded-lg border py-2 text-xs font-semibold transition ${
+                present
+                  ? "border-green-400 bg-green-50 text-green-700"
+                  : "border-slate-200 bg-white text-slate-400 hover:border-slate-300"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-600">
+          درجات الكويزات
+        </label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {quizzes.map((grade, index) => (
+            <div key={index}>
+              <label className="mb-1 block text-[11px] font-medium text-slate-400">
+                كويز {index + 1}
+              </label>
+              <input
+                type="text"
+                value={grade}
+                onChange={(e) => onQuizChange(index, e.target.value)}
+                placeholder="-"
+                className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-center text-xs outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-600">
+          <GraduationCap size={15} className="text-slate-400" />
+          درجة الاختبار النهائي
+        </label>
+        <input
+          type="text"
+          value={finalExam}
+          onChange={(e) => onFinalExamChange(e.target.value)}
+          placeholder="أدخل الدرجة"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+        />
+      </div>
+
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={onSave}
+          className="flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700"
+        >
+          <Save size={15} />
+          حفظ الحضور والدرجات
+        </button>
       </div>
     </div>
   );
@@ -123,11 +232,16 @@ export default function AttendanceModal({
   groupName,
   onAdd,
   onDelete,
+  onUpdateRecords,
 }) {
   const [startDate, setStartDate] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0].value);
   const [error, setError] = useState("");
   const [deletingSubscription, setDeletingSubscription] = useState(null);
+  const [attendance, setAttendance] = useState(Array(RECORD_SLOTS).fill(false));
+  const [quizzes, setQuizzes] = useState(Array(RECORD_SLOTS).fill(""));
+  const [finalExamGrade, setFinalExamGrade] = useState("");
+  const [recordsSaved, setRecordsSaved] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -135,6 +249,18 @@ export default function AttendanceModal({
       setPaymentMethod(PAYMENT_METHODS[0].value);
       setError("");
       setDeletingSubscription(null);
+      setAttendance(
+        student?.attendance?.length
+          ? [...student.attendance]
+          : Array(RECORD_SLOTS).fill(false),
+      );
+      setQuizzes(
+        student?.quizzes?.length
+          ? [...student.quizzes]
+          : Array(RECORD_SLOTS).fill(""),
+      );
+      setFinalExamGrade(student?.finalExam ?? "");
+      setRecordsSaved(false);
     }
   }, [open, student]);
 
@@ -171,6 +297,41 @@ export default function AttendanceModal({
     window.open(link, "_blank", "noopener,noreferrer");
   }
 
+  function handleSendMonthlyReport() {
+    const link = buildMonthlyReportWhatsAppLink({
+      studentName: student.name,
+      groupName,
+      subscriptions,
+      attendance: student.attendance || [],
+      quizzes: student.quizzes || [],
+      finalExam: student.finalExam,
+      parentPhone: student.parentPhone,
+    });
+    window.open(link, "_blank", "noopener,noreferrer");
+  }
+
+  function toggleAttendance(index) {
+    setAttendance((prev) =>
+      prev.map((present, i) => (i === index ? !present : present)),
+    );
+    setRecordsSaved(false);
+  }
+
+  function updateQuizGrade(index, value) {
+    setQuizzes((prev) => prev.map((grade, i) => (i === index ? value : grade)));
+    setRecordsSaved(false);
+  }
+
+  function handleFinalExamChange(value) {
+    setFinalExamGrade(value);
+    setRecordsSaved(false);
+  }
+
+  function handleSaveRecords() {
+    onUpdateRecords({ attendance, quizzes, finalExam: finalExamGrade });
+    setRecordsSaved(true);
+  }
+
   return (
     <>
       <Modal
@@ -179,7 +340,7 @@ export default function AttendanceModal({
         title={`الحضور - ${student.name}`}
         maxWidth="max-w-lg"
       >
-        <div className="space-y-6">
+        <div className="scrollbar-thin max-h-[70vh] space-y-6 overflow-y-auto pe-1">
           <form
             onSubmit={handleAdd}
             className="space-y-4 rounded-xl border border-slate-100 bg-slate-50/60 p-4"
@@ -202,15 +363,19 @@ export default function AttendanceModal({
               />
             </div>
 
-            <PaymentMethodField value={paymentMethod} onChange={setPaymentMethod} />
+            <PaymentMethodField
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+            />
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <div className="flex justify-end pt-1">
+            <div className="pt-1">
               <button
                 type="submit"
-                className="rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700"
+                className="flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700"
               >
+                <Plus size={14} />
                 إضافة
               </button>
             </div>
@@ -271,6 +436,28 @@ export default function AttendanceModal({
                 ))}
               </ul>
             )}
+          </div>
+
+          <AttendanceGradesSection
+            attendance={attendance}
+            quizzes={quizzes}
+            finalExam={finalExamGrade}
+            onToggleAttendance={toggleAttendance}
+            onQuizChange={updateQuizGrade}
+            onFinalExamChange={handleFinalExamChange}
+            onSave={handleSaveRecords}
+            saved={recordsSaved}
+          />
+
+          <div className="border-t border-slate-100 pt-4">
+            <button
+              type="button"
+              onClick={handleSendMonthlyReport}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700"
+            >
+              <WhatsAppIcon size={16} />
+              إرسال التقرير الشهري
+            </button>
           </div>
         </div>
       </Modal>

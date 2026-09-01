@@ -97,6 +97,7 @@ export default function GroupDetails() {
         groupName={group.name}
         onAdd={(subscription) => addSubscription(group.id, attendanceStudentId, subscription)}
         onDelete={(subscriptionId) => deleteSubscription(group.id, attendanceStudentId, subscriptionId)}
+        onUpdateRecords={(records) => updateStudent(group.id, attendanceStudentId, records)}
       />
     </div>
   )

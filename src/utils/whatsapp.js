@@ -4,10 +4,10 @@
  * (e.g. "201012345678"), stripping any spaces/dashes along the way.
  */
 function normalizeEgyptPhone(phone) {
-  const digits = String(phone || '').replace(/\D/g, '')
-  if (digits.startsWith('20')) return digits
-  if (digits.startsWith('0')) return `20${digits.slice(1)}`
-  return `20${digits}`
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.startsWith("20")) return digits;
+  if (digits.startsWith("0")) return `20${digits.slice(1)}`;
+  return `20${digits}`;
 }
 
 /**
@@ -34,8 +34,72 @@ export function buildReceiptWhatsAppLink({
 طريقة الدفع: ${paymentMethod}
 
 شكرًا لكم،
-Star Academy`
+Star Academy`;
 
-  const phone = normalizeEgyptPhone(parentPhone)
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+  const phone = normalizeEgyptPhone(parentPhone);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Builds a wa.me link that opens WhatsApp with a pre-filled monthly report
+ * for a student's parent, covering their subscription/payment history,
+ * attendance, quiz grades and final exam grade.
+ */
+export function buildMonthlyReportWhatsAppLink({
+  studentName,
+  groupName,
+  subscriptions = [],
+  attendance = [],
+  quizzes = [],
+  finalExam,
+  parentPhone,
+}) {
+  const paymentsList = subscriptions.length
+    ? subscriptions
+        .map(
+          (sub) =>
+            `- من ${sub.startDate} إلى ${sub.endDate} (${sub.paymentMethod})`,
+        )
+        .join("\n")
+    : "لا يوجد مدفوعات مسجلة";
+
+  const attendanceCount = attendance.filter(Boolean).length;
+  const attendanceList = attendance
+    .map((present, index) => `الحصة ${index + 1}: ${present ? "حاضر" : "غائب"}`)
+    .join("\n");
+
+  const quizzesList = quizzes
+    .map((grade, index) => `كويز ${index + 1}: ${grade || "-"}`)
+    .join("\n");
+
+  const message = `مرحبًا،
+
+هذا هو التقرير الشهري الخاص بالطالب:
+
+ اسم الطالب: ${studentName}
+ المجموعة: ${groupName}
+
+ سجل الاشتراكات والمدفوعات:
+
+${paymentsList}
+
+ الحضور:
+
+عدد مرات الحضور: ${attendanceCount} من ${attendance.length}
+
+${attendanceList}
+
+ درجات الكويزات:
+
+${quizzesList}
+
+ الاختبار النهائي:
+
+الدرجة: ${finalExam || "-"}
+
+شكرًا لكم،
+Star Academy`;
+
+  const phone = normalizeEgyptPhone(parentPhone);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
