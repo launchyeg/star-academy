@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react'
-import Modal from './Modal'
+import { useEffect, useState } from "react";
+import Modal from "./Modal";
 
-const emptyForm = { name: '', phone: '', parentPhone: '', price: '' }
+const emptyForm = { name: "", phone: "", parentPhone: "", price: "" };
 
 /**
  * Modal form used to both add a new student and edit an existing one.
  * Pass `initialData` to pre-fill the form in edit mode.
  */
-export default function AddStudentModal({ open, onClose, onSubmit, initialData }) {
-  const isEditMode = Boolean(initialData)
-  const [form, setForm] = useState(emptyForm)
-  const [error, setError] = useState('')
+export default function AddStudentModal({
+  open,
+  onClose,
+  onSubmit,
+  initialData,
+}) {
+  const isEditMode = Boolean(initialData);
+  const [form, setForm] = useState(emptyForm);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -22,27 +27,32 @@ export default function AddStudentModal({ open, onClose, onSubmit, initialData }
               parentPhone: initialData.parentPhone,
               price: initialData.price,
             }
-          : emptyForm
-      )
-      setError('')
+          : emptyForm,
+      );
+      setError("");
     }
-  }, [open, initialData])
+  }, [open, initialData]);
 
   function handleChange(field) {
-    return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
   }
 
   function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!form.name.trim() || !form.phone.trim() || !form.parentPhone.trim() || form.price === '') {
-      setError('من فضلك أدخل جميع البيانات المطلوبة')
-      return
+    if (
+      !form.name.trim() ||
+      !form.phone.trim() ||
+      !form.parentPhone.trim() ||
+      form.price === ""
+    ) {
+      setError("من فضلك أدخل جميع البيانات المطلوبة");
+      return;
     }
 
     if (Number(form.price) < 0) {
-      setError('سعر الاشتراك غير صحيح')
-      return
+      setError("سعر الاشتراك غير صحيح");
+      return;
     }
 
     onSubmit({
@@ -50,53 +60,65 @@ export default function AddStudentModal({ open, onClose, onSubmit, initialData }
       phone: form.phone.trim(),
       parentPhone: form.parentPhone.trim(),
       price: Number(form.price),
-    })
-    onClose()
+    });
+    onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditMode ? 'تعديل بيانات الطالب' : 'إضافة طالب'}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEditMode ? "تعديل بيانات الطالب" : "إضافة طالب"}
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-600">اسم الطالب</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
+            اسم الطالب
+          </label>
           <input
             type="text"
             value={form.name}
-            onChange={handleChange('name')}
+            onChange={handleChange("name")}
             placeholder="مثال: محمد أحمد"
             className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-600">رقم هاتف الطالب</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
+            رقم هاتف الطالب
+          </label>
           <input
             type="tel"
             value={form.phone}
-            onChange={handleChange('phone')}
+            onChange={handleChange("phone")}
             placeholder="01xxxxxxxxx"
             className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-600">رقم هاتف ولي الأمر</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
+            رقم هاتف ولي الأمر
+          </label>
           <input
             type="tel"
             value={form.parentPhone}
-            onChange={handleChange('parentPhone')}
+            onChange={handleChange("parentPhone")}
             placeholder="01xxxxxxxxx"
             className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-600">سعر الاشتراك</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
+            سعر الاشتراك
+          </label>
           <input
             type="number"
             min="0"
             value={form.price}
-            onChange={handleChange('price')}
+            onChange={handleChange("price")}
             placeholder="0"
             className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
           />
@@ -104,7 +126,7 @@ export default function AddStudentModal({ open, onClose, onSubmit, initialData }
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
@@ -116,10 +138,10 @@ export default function AddStudentModal({ open, onClose, onSubmit, initialData }
             type="submit"
             className="rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700"
           >
-            {isEditMode ? 'حفظ التعديلات' : 'إضافة الطالب'}
+            {isEditMode ? "حفظ التعديلات" : "إضافة الطالب"}
           </button>
         </div>
       </form>
     </Modal>
-  )
+  );
 }

@@ -95,6 +95,24 @@ export function AcademyProvider({ children }) {
     return groups.find((g) => String(g.id) === String(groupId))
   }
 
+  async function updateGroup(groupId, name) {
+    const { error: updateError } = await supabase
+      .from('groups')
+      .update({ name: name.trim() })
+      .eq('id', groupId)
+    if (updateError) throw updateError
+    await refresh()
+  }
+
+  // Deletes only the group row. Its students (and their subscriptions) are
+  // kept — the DB's ON DELETE SET NULL foreign key just ungroups them
+  // instead of cascading the delete down to them.
+  async function deleteGroup(groupId) {
+    const { error: deleteError } = await supabase.from('groups').delete().eq('id', groupId)
+    if (deleteError) throw deleteError
+    await refresh()
+  }
+
   async function addStudent(groupId, student) {
     const { error: insertError } = await supabase.from('students').insert({
       group_id: groupId,
@@ -189,6 +207,8 @@ export function AcademyProvider({ children }) {
     totals,
     addGroup,
     getGroup,
+    updateGroup,
+    deleteGroup,
     addStudent,
     updateStudent,
     deleteStudent,

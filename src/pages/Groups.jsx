@@ -1,13 +1,19 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PlusCircle, Users2 } from "lucide-react";
 import { useAcademy } from "../context/AcademyContext";
 import GroupCard from "../components/GroupCard";
+import EditGroupModal from "../components/EditGroupModal";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 /**
- * Grid of all groups. Clicking a card navigates to /dashboard/groups/:id
+ * Grid of all groups. Clicking a card navigates to /dashboard/groups/:id;
+ * each card also exposes edit (rename) and delete actions.
  */
 export default function Groups() {
-  const { groups } = useAcademy();
+  const { groups, updateGroup, deleteGroup } = useAcademy();
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [deletingGroup, setDeletingGroup] = useState(null);
 
   if (groups.length === 0) {
     return (
@@ -49,9 +55,29 @@ export default function Groups() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {groups.map((group) => (
-          <GroupCard key={group.id} group={group} />
+          <GroupCard
+            key={group.id}
+            group={group}
+            onEdit={setEditingGroup}
+            onDelete={setDeletingGroup}
+          />
         ))}
       </div>
+
+      <EditGroupModal
+        open={Boolean(editingGroup)}
+        onClose={() => setEditingGroup(null)}
+        onSubmit={(name) => updateGroup(editingGroup.id, name)}
+        group={editingGroup}
+      />
+
+      <ConfirmDialog
+        open={Boolean(deletingGroup)}
+        onClose={() => setDeletingGroup(null)}
+        onConfirm={() => deleteGroup(deletingGroup.id)}
+        title="حذف المجموعة"
+        message={`هل أنت متأكد من حذف مجموعة "${deletingGroup?.name}"؟ سيتم حذف المجموعة فقط — الطلاب واشتراكاتهم يبقون محفوظين، وسيصبحون غير مرتبطين بأي مجموعة.`}
+      />
     </div>
   );
 }
