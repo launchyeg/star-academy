@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from './AuthContext'
 
 const AcademyContext = createContext(null)
 
@@ -56,6 +57,7 @@ function mapGroup(row) {
  * mutation, so `groups` always reflects what's actually in the database.
  */
 export function AcademyProvider({ children }) {
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -75,9 +77,22 @@ export function AcademyProvider({ children }) {
     setGroups((data || []).map(mapGroup))
   }
 
+  // Wait for AuthContext to settle before fetching: fetching immediately on
+  // mount (regardless of auth state) used to race the async Supabase session
+  // restore — the request could go out before the admin was authenticated,
+  // RLS would block it, and nothing ever refetched once login completed.
   useEffect(() => {
+    if (authLoading) return
+
+    if (!isAuthenticated) {
+      setGroups([])
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
     refresh().finally(() => setLoading(false))
-  }, [])
+  }, [isAuthenticated, authLoading])
 
   async function addGroup(name) {
     const { data, error: insertError } = await supabase

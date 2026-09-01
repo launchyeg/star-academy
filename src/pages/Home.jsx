@@ -20,7 +20,7 @@ export default function Home() {
     <div dir="rtl" className="flex min-h-screen flex-col bg-slate-50">
       <header className="border-b border-slate-100 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center  gap-2">
+          <div className="flex items-center gap-2">
             <img
               src="/logo.png"
               alt="Logo"
