@@ -8,6 +8,7 @@ import {
   Smartphone,
   ClipboardCheck,
   GraduationCap,
+  StickyNote,
   Save,
   Plus,
   ChevronDown,
@@ -122,16 +123,18 @@ function PaymentMethodField({ value, onChange }) {
   );
 }
 
-/** Attendance toggles + quiz/final-exam grade inputs for one subscription
+/** Attendance toggles + quiz/final-exam grade/note inputs for one subscription
  * (one month), committed together via a single "save" action (mirrors the
  * explicit-submit pattern used by the subscription form above it). */
 function AttendanceGradesSection({
   attendance,
   quizzes,
   finalExam,
+  note,
   onToggleAttendance,
   onQuizChange,
   onFinalExamChange,
+  onNoteChange,
   onSave,
   onSendReport,
   saved,
@@ -207,6 +210,20 @@ function AttendanceGradesSection({
         />
       </div>
 
+      <div>
+        <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-600">
+          <StickyNote size={15} className="text-slate-400" />
+          ملاحظات
+        </label>
+        <textarea
+          value={note}
+          onChange={(e) => onNoteChange(e.target.value)}
+          placeholder="أدخل ملاحظاتك هنا"
+          rows={3}
+          className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+        />
+      </div>
+
       <div className="flex flex-wrap gap-2 pt-1">
         <button
           type="button"
@@ -235,7 +252,7 @@ function AttendanceGradesSection({
  * plus payment method) and deleting an existing record. No edit functionality,
  * per product requirements — subscriptions are add/delete only.
  *
- * Attendance/quiz/final-exam records live on each subscription (one record
+ * Attendance/quiz/final-exam/note records live on each subscription (one record
  * set per month), so a fresh, empty AttendanceGradesSection appears for every
  * new subscription — there is no single shared attendance section.
  */
@@ -260,6 +277,7 @@ export default function AttendanceModal({
     Array(RECORD_SLOTS).fill(""),
   );
   const [draftFinalExam, setDraftFinalExam] = useState("");
+  const [draftNote, setDraftNote] = useState("");
   const [recordsSaved, setRecordsSaved] = useState(false);
 
   useEffect(() => {
@@ -286,6 +304,7 @@ export default function AttendanceModal({
       sub.quizzes?.length ? [...sub.quizzes] : Array(RECORD_SLOTS).fill(""),
     );
     setDraftFinalExam(sub.finalExam ?? "");
+    setDraftNote(sub.note ?? "");
     setRecordsSaved(false);
   }
 
@@ -310,6 +329,7 @@ export default function AttendanceModal({
         attendance: [],
         quizzes: [],
         finalExam: "",
+        note: "",
       });
     }
   }
@@ -358,11 +378,17 @@ export default function AttendanceModal({
     setRecordsSaved(false);
   }
 
+  function handleNoteChange(value) {
+    setDraftNote(value);
+    setRecordsSaved(false);
+  }
+
   function handleSaveRecords() {
     onUpdateSubscriptionRecords(expandedSubscriptionId, {
       attendance: draftAttendance,
       quizzes: draftQuizzes,
       finalExam: draftFinalExam,
+      note: draftNote,
     });
     setRecordsSaved(true);
   }
@@ -374,6 +400,7 @@ export default function AttendanceModal({
       attendance: draftAttendance,
       quizzes: draftQuizzes,
       finalExam: draftFinalExam,
+      note: draftNote,
     });
     setRecordsSaved(true);
 
@@ -384,6 +411,7 @@ export default function AttendanceModal({
       attendance: draftAttendance,
       quizzes: draftQuizzes,
       finalExam: draftFinalExam,
+      note: draftNote,
       parentPhone: student.parentPhone,
     });
     window.open(link, "_blank", "noopener,noreferrer");
@@ -519,9 +547,11 @@ export default function AttendanceModal({
                             attendance={draftAttendance}
                             quizzes={draftQuizzes}
                             finalExam={draftFinalExam}
+                            note={draftNote}
                             onToggleAttendance={toggleAttendance}
                             onQuizChange={updateQuizGrade}
                             onFinalExamChange={handleFinalExamChange}
+                            onNoteChange={handleNoteChange}
                             onSave={handleSaveRecords}
                             onSendReport={() => handleSendMonthlyReport(sub)}
                             saved={recordsSaved}

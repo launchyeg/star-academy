@@ -43,7 +43,7 @@ Star Academy`;
 /**
  * Builds a wa.me link that opens WhatsApp with a pre-filled monthly report
  * for a student's parent, covering their subscription/payment history,
- * attendance, quiz grades and final exam grade.
+ * attendance, quiz grades, final exam grade and any note.
  */
 export function buildMonthlyReportWhatsAppLink({
   studentName,
@@ -52,6 +52,7 @@ export function buildMonthlyReportWhatsAppLink({
   attendance = [],
   quizzes = [],
   finalExam,
+  note,
   parentPhone,
 }) {
   const paymentsList = subscriptions.length
@@ -96,6 +97,10 @@ ${quizzesList}
  الاختبار النهائي:
 
 الدرجة: ${finalExam || "-"}
+
+ ملاحظات:
+
+${note || "-"}
 
 شكرًا لكم،
 Star Academy`;

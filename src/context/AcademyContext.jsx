@@ -107,7 +107,7 @@ export function AcademyProvider({ children }) {
     )
   }
 
-  // Commits attendance/quizzes/finalExam for one subscription (one month).
+  // Commits attendance/quizzes/finalExam/note for one subscription (one month).
   function updateSubscriptionRecords(groupId, studentId, subscriptionId, records) {
     setGroups((prev) =>
       prev.map((g) =>
