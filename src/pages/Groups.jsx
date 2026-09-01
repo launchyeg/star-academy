@@ -1,13 +1,13 @@
-import { Link } from 'react-router-dom'
-import { PlusCircle, Users2 } from 'lucide-react'
-import { useAcademy } from '../context/AcademyContext'
-import GroupCard from '../components/GroupCard'
+import { Link } from "react-router-dom";
+import { PlusCircle, Users2 } from "lucide-react";
+import { useAcademy } from "../context/AcademyContext";
+import GroupCard from "../components/GroupCard";
 
 /**
  * Grid of all groups. Clicking a card navigates to /dashboard/groups/:id
  */
 export default function Groups() {
-  const { groups } = useAcademy()
+  const { groups } = useAcademy();
 
   if (groups.length === 0) {
     return (
@@ -17,7 +17,9 @@ export default function Groups() {
         </div>
         <div>
           <p className="font-medium text-slate-600">لا توجد مجموعات بعد</p>
-          <p className="mt-1 text-sm text-slate-400">ابدأ بإنشاء أول مجموعة في الأكاديمية</p>
+          <p className="mt-1 text-sm text-slate-400">
+            ابدأ بإنشاء أول مجموعة في الأكاديمية
+          </p>
         </div>
         <Link
           to="/dashboard/create-group"
@@ -27,13 +29,15 @@ export default function Groups() {
           إنشاء مجموعة
         </Link>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-400">إجمالي المجموعات: {groups.length}</p>
+        <p className="text-sm text-slate-400">
+          إجمالي المجموعات: {groups.length}
+        </p>
         <Link
           to="/dashboard/create-group"
           className="flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
@@ -49,5 +53,5 @@ export default function Groups() {
         ))}
       </div>
     </div>
-  )
+  );
 }

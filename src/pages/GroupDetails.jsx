@@ -1,17 +1,17 @@
-import { useState } from 'react'
-import { useParams, Link, Navigate } from 'react-router-dom'
-import { UserPlus, Users2, ChevronRight } from 'lucide-react'
-import { useAcademy } from '../context/AcademyContext'
-import StudentTable from '../components/StudentTable'
-import AddStudentModal from '../components/AddStudentModal'
-import AttendanceModal from '../components/AttendanceModal'
-import ConfirmDialog from '../components/ConfirmDialog'
+import { useState } from "react";
+import { useParams, Link, Navigate } from "react-router-dom";
+import { UserPlus, Users2, ChevronRight } from "lucide-react";
+import { useAcademy } from "../context/AcademyContext";
+import StudentTable from "../components/StudentTable";
+import AddStudentModal from "../components/AddStudentModal";
+import AttendanceModal from "../components/AttendanceModal";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 /**
  * Single group page: group info, "Add student" action, and the students table.
  */
 export default function GroupDetails() {
-  const { id } = useParams()
+  const { id } = useParams();
   const {
     getGroup,
     addStudent,
@@ -20,27 +20,29 @@ export default function GroupDetails() {
     addSubscription,
     deleteSubscription,
     updateSubscriptionRecords,
-  } = useAcademy()
-  const group = getGroup(id)
+  } = useAcademy();
+  const group = getGroup(id);
 
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [editingStudent, setEditingStudent] = useState(null)
-  const [deletingStudent, setDeletingStudent] = useState(null)
-  const [attendanceStudentId, setAttendanceStudentId] = useState(null)
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [deletingStudent, setDeletingStudent] = useState(null);
+  const [attendanceStudentId, setAttendanceStudentId] = useState(null);
 
   if (!group) {
-    return <Navigate to="/dashboard/groups" replace />
+    return <Navigate to="/dashboard/groups" replace />;
   }
 
-  const attendanceStudent = group.students.find((s) => String(s.id) === String(attendanceStudentId)) || null
+  const attendanceStudent =
+    group.students.find((s) => String(s.id) === String(attendanceStudentId)) ||
+    null;
 
   function handleAddStudent(studentData) {
-    addStudent(group.id, studentData)
+    addStudent(group.id, studentData);
   }
 
   function handleEditStudent(studentData) {
-    updateStudent(group.id, editingStudent.id, studentData)
-    setEditingStudent(null)
+    updateStudent(group.id, editingStudent.id, studentData);
+    setEditingStudent(null);
   }
 
   return (
@@ -60,7 +62,9 @@ export default function GroupDetails() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">{group.name}</h2>
-            <p className="mt-1 text-sm text-slate-400">عدد الطلاب: {group.students.length}</p>
+            <p className="mt-1 text-sm text-slate-400">
+              عدد الطلاب: {group.students.length}
+            </p>
           </div>
         </div>
 
@@ -81,7 +85,11 @@ export default function GroupDetails() {
         onAttendance={(student) => setAttendanceStudentId(student.id)}
       />
 
-      <AddStudentModal open={isAddOpen} onClose={() => setIsAddOpen(false)} onSubmit={handleAddStudent} />
+      <AddStudentModal
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSubmit={handleAddStudent}
+      />
 
       <AddStudentModal
         open={Boolean(editingStudent)}
@@ -103,12 +111,21 @@ export default function GroupDetails() {
         onClose={() => setAttendanceStudentId(null)}
         student={attendanceStudent}
         groupName={group.name}
-        onAdd={(subscription) => addSubscription(group.id, attendanceStudentId, subscription)}
-        onDelete={(subscriptionId) => deleteSubscription(group.id, attendanceStudentId, subscriptionId)}
+        onAdd={(subscription) =>
+          addSubscription(group.id, attendanceStudentId, subscription)
+        }
+        onDelete={(subscriptionId) =>
+          deleteSubscription(group.id, attendanceStudentId, subscriptionId)
+        }
         onUpdateSubscriptionRecords={(subscriptionId, records) =>
-          updateSubscriptionRecords(group.id, attendanceStudentId, subscriptionId, records)
+          updateSubscriptionRecords(
+            group.id,
+            attendanceStudentId,
+            subscriptionId,
+            records,
+          )
         }
       />
     </div>
-  )
+  );
 }

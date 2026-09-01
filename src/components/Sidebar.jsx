@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutGrid, PlusCircle, Users2, Star } from "lucide-react";
+import { LayoutGrid, PlusCircle, Users2 } from "lucide-react";
 
 const navItems = [
   { to: "/dashboard", label: "نظرة عامة", icon: LayoutGrid, end: true },
@@ -14,11 +14,9 @@ export default function Sidebar({ onNavigate }) {
   return (
     <aside className="flex h-full w-full flex-col bg-white">
       <div className="flex items-center gap-2 px-6 py-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm">
-          <Star size={20} fill="currentColor" strokeWidth={0} />
-        </div>
+        <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
         <div>
-          <p className="text-base font-bold text-slate-800">Star Academy</p>
+          <p className="text-base font-bold text-slate-800">The Star Academy</p>
           <p className="text-xs text-slate-400">لوحة التحكم</p>
         </div>
       </div>
@@ -54,7 +52,7 @@ export default function Sidebar({ onNavigate }) {
 
       <div className="border-t border-slate-100 px-6 py-4">
         <p className="text-xs text-slate-300">
-          Star Academy © 2026 Developed by{" "}
+          The Star Academy © 2026 Developed by{" "}
           <a
             href="https://aaaportfolio.vercel.app/"
             target="_blank"

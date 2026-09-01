@@ -10,11 +10,13 @@ export default function Home() {
       <header className="border-b border-slate-100 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-white">
-              <Star size={18} fill="currentColor" strokeWidth={0} />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="w-9 h-9 object-contain"
+            />
             <span className="text-base font-bold text-slate-800">
-              Star Academy
+              The Star Academy
             </span>
           </div>
 
@@ -30,7 +32,7 @@ export default function Home() {
       <main className="flex flex-1 items-center justify-center px-6 text-center">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-800 sm:text-4xl">
-            مرحبًا بك في Star Academy
+            مرحبًا بك في The Star Academy
           </h1>
           <p className="mx-auto mt-4 max-w-md text-slate-500">
             منصة إدارة أكاديمية بسيطة وحديثة لمتابعة المجموعات والطلاب بكل
@@ -40,7 +42,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-100 bg-white py-6 text-center text-sm text-slate-400">
-        Star Academy © 2026 Developed by{" "}
+        The Star Academy © 2026 Developed by{" "}
         <a
           href="https://aaaportfolio.vercel.app/"
           target="_blank"

@@ -1,44 +1,56 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { Star, Lock, User } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Star, Lock, User } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Mock login form. No real backend call — see AuthContext for details.
  */
 export default function Login() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const { login } = useAuth()
-  const navigate = useNavigate()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   function handleSubmit(e) {
-    e.preventDefault()
-    const result = login(username, password)
+    e.preventDefault();
+    const result = login(username, password);
     if (result.success) {
-      navigate('/dashboard')
+      navigate("/dashboard");
     } else {
-      setError(result.message)
+      setError(result.message);
     }
   }
 
   return (
-    <div dir="rtl" className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+    <div
+      dir="rtl"
+      className="flex min-h-screen items-center justify-center bg-slate-50 px-6"
+    >
       <div className="w-full max-w-sm rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white">
-            <Star size={22} fill="currentColor" strokeWidth={0} />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="w-12 h-12 object-contain"
+          />
           <h1 className="text-xl font-bold text-slate-800">تسجيل الدخول</h1>
-          <p className="text-sm text-slate-400">مرحبًا بك مجددًا في Star Academy</p>
+          <p className="text-sm text-slate-400">
+            مرحبًا بك مجددًا في The Star Academy
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-600">اسم المستخدم</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
+              اسم المستخدم
+            </label>
             <div className="relative">
-              <User size={18} className="absolute top-1/2 right-3.5 -translate-y-1/2 text-slate-300" />
+              <User
+                size={18}
+                className="absolute top-1/2 right-3.5 -translate-y-1/2 text-slate-300"
+              />
               <input
                 type="text"
                 value={username}
@@ -50,9 +62,14 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-600">كلمة المرور</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
+              كلمة المرور
+            </label>
             <div className="relative">
-              <Lock size={18} className="absolute top-1/2 right-3.5 -translate-y-1/2 text-slate-300" />
+              <Lock
+                size={18}
+                className="absolute top-1/2 right-3.5 -translate-y-1/2 text-slate-300"
+              />
               <input
                 type="password"
                 value={password}
@@ -81,5 +98,5 @@ export default function Login() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

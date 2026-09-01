@@ -1,4 +1,4 @@
-# Star Academy
+# The Star Academy
 
 Des
 

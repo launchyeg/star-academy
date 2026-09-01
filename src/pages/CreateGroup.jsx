@@ -1,28 +1,28 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { PlusCircle } from 'lucide-react'
-import { useAcademy } from '../context/AcademyContext'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { PlusCircle } from "lucide-react";
+import { useAcademy } from "../context/AcademyContext";
 
 /**
  * Form to create a new group. The group is added to React state
  * and the admin is redirected straight to its details page.
  */
 export default function CreateGroup() {
-  const [name, setName] = useState('')
-  const [error, setError] = useState('')
-  const { addGroup } = useAcademy()
-  const navigate = useNavigate()
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const { addGroup } = useAcademy();
+  const navigate = useNavigate();
 
   function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!name.trim()) {
-      setError('من فضلك أدخل اسم المجموعة')
-      return
+      setError("من فضلك أدخل اسم المجموعة");
+      return;
     }
 
-    const newGroup = addGroup(name)
-    navigate(`/dashboard/groups/${newGroup.id}`)
+    const newGroup = addGroup(name);
+    navigate(`/dashboard/groups/${newGroup.id}`);
   }
 
   return (
@@ -34,13 +34,17 @@ export default function CreateGroup() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">إنشاء مجموعة</h2>
-            <p className="text-sm text-slate-400">أضف مجموعة جديدة إلى الأكاديمية</p>
+            <p className="text-sm text-slate-400">
+              أضف مجموعة جديدة إلى الأكاديمية
+            </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-600">اسم المجموعة</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
+              اسم المجموعة
+            </label>
             <input
               type="text"
               value={name}
@@ -60,5 +64,5 @@ export default function CreateGroup() {
         </form>
       </div>
     </div>
-  )
+  );
 }

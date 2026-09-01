@@ -34,7 +34,7 @@ export function buildReceiptWhatsAppLink({
 طريقة الدفع: ${paymentMethod}
 
 شكرًا لكم،
-Star Academy`;
+The Star Academy`;
 
   const phone = normalizeEgyptPhone(parentPhone);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -103,7 +103,7 @@ ${quizzesList}
 ${note || "-"}
 
 شكرًا لكم،
-Star Academy`;
+The Star Academy`;
 
   const phone = normalizeEgyptPhone(parentPhone);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
