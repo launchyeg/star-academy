@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Phone } from "lucide-react";
-import TikTokIcon from "../components/icons/TiktokIcon";
+import TikTokIcon from "../components/icons/TikTokIcon";
 import WhatsAppIcon from "../components/icons/WhatsAppIcon";
 import { siteConfig } from "../siteConfig";
 
