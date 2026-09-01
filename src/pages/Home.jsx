@@ -20,11 +20,11 @@ export default function Home() {
     <div dir="rtl" className="flex min-h-screen flex-col bg-slate-50">
       <header className="border-b border-slate-100 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center  gap-2">
             <img
               src="/logo.png"
               alt="Logo"
-              className="w-9 h-9 object-contain"
+              className="w-10 h-10 object-contain"
             />
             <span className="text-base font-bold text-slate-800">
               {siteConfig.siteName}
