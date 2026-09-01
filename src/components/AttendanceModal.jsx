@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Save,
   Plus,
+  ChevronDown,
 } from "lucide-react";
 import Modal from "./Modal";
 import ConfirmDialog from "./ConfirmDialog";
@@ -17,6 +18,7 @@ import {
   buildReceiptWhatsAppLink,
   buildMonthlyReportWhatsAppLink,
 } from "../utils/whatsapp";
+import { RECORD_SLOTS } from "../constants";
 
 const PAYMENT_METHODS = [
   { value: "كاش", icon: Banknote },
@@ -24,7 +26,6 @@ const PAYMENT_METHODS = [
   { value: "فودافون كاش", icon: Smartphone },
 ];
 const SUBSCRIPTION_DAYS = 30;
-const RECORD_SLOTS = 8;
 
 function addDays(dateString, days) {
   const date = new Date(dateString);
@@ -121,9 +122,9 @@ function PaymentMethodField({ value, onChange }) {
   );
 }
 
-/** Attendance toggles + quiz/final-exam grade inputs, committed together via
- * a single "save" action (mirrors the explicit-submit pattern used by the
- * subscription form above it). */
+/** Attendance toggles + quiz/final-exam grade inputs for one subscription
+ * (one month), committed together via a single "save" action (mirrors the
+ * explicit-submit pattern used by the subscription form above it). */
 function AttendanceGradesSection({
   attendance,
   quizzes,
@@ -132,6 +133,7 @@ function AttendanceGradesSection({
   onQuizChange,
   onFinalExamChange,
   onSave,
+  onSendReport,
   saved,
 }) {
   const presentCount = attendance.filter(Boolean).length;
@@ -205,14 +207,22 @@ function AttendanceGradesSection({
         />
       </div>
 
-      <div className="pt-1">
+      <div className="flex flex-wrap gap-2 pt-1">
         <button
           type="button"
           onClick={onSave}
           className="flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700"
         >
           <Save size={15} />
-          حفظ الحضور والدرجات
+          حفظ
+        </button>
+        <button
+          type="button"
+          onClick={onSendReport}
+          className="flex items-center gap-1.5 rounded-xl bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700"
+        >
+          <WhatsAppIcon size={15} />
+          إرسال التقرير الشهري
         </button>
       </div>
     </div>
@@ -224,6 +234,10 @@ function AttendanceGradesSection({
  * Supports adding a new monthly subscription (start date → auto end date +30 days,
  * plus payment method) and deleting an existing record. No edit functionality,
  * per product requirements — subscriptions are add/delete only.
+ *
+ * Attendance/quiz/final-exam records live on each subscription (one record
+ * set per month), so a fresh, empty AttendanceGradesSection appears for every
+ * new subscription — there is no single shared attendance section.
  */
 export default function AttendanceModal({
   open,
@@ -232,15 +246,20 @@ export default function AttendanceModal({
   groupName,
   onAdd,
   onDelete,
-  onUpdateRecords,
+  onUpdateSubscriptionRecords,
 }) {
   const [startDate, setStartDate] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0].value);
   const [error, setError] = useState("");
   const [deletingSubscription, setDeletingSubscription] = useState(null);
-  const [attendance, setAttendance] = useState(Array(RECORD_SLOTS).fill(false));
-  const [quizzes, setQuizzes] = useState(Array(RECORD_SLOTS).fill(""));
-  const [finalExamGrade, setFinalExamGrade] = useState("");
+  const [expandedSubscriptionId, setExpandedSubscriptionId] = useState(null);
+  const [draftAttendance, setDraftAttendance] = useState(
+    Array(RECORD_SLOTS).fill(false),
+  );
+  const [draftQuizzes, setDraftQuizzes] = useState(
+    Array(RECORD_SLOTS).fill(""),
+  );
+  const [draftFinalExam, setDraftFinalExam] = useState("");
   const [recordsSaved, setRecordsSaved] = useState(false);
 
   useEffect(() => {
@@ -249,22 +268,26 @@ export default function AttendanceModal({
       setPaymentMethod(PAYMENT_METHODS[0].value);
       setError("");
       setDeletingSubscription(null);
-      setAttendance(
-        student?.attendance?.length
-          ? [...student.attendance]
-          : Array(RECORD_SLOTS).fill(false),
-      );
-      setQuizzes(
-        student?.quizzes?.length
-          ? [...student.quizzes]
-          : Array(RECORD_SLOTS).fill(""),
-      );
-      setFinalExamGrade(student?.finalExam ?? "");
+      setExpandedSubscriptionId(null);
       setRecordsSaved(false);
     }
   }, [open, student]);
 
   const endDate = startDate ? addDays(startDate, SUBSCRIPTION_DAYS) : "";
+
+  function openRecordsFor(sub) {
+    setExpandedSubscriptionId(sub.id);
+    setDraftAttendance(
+      sub.attendance?.length
+        ? [...sub.attendance]
+        : Array(RECORD_SLOTS).fill(false),
+    );
+    setDraftQuizzes(
+      sub.quizzes?.length ? [...sub.quizzes] : Array(RECORD_SLOTS).fill(""),
+    );
+    setDraftFinalExam(sub.finalExam ?? "");
+    setRecordsSaved(false);
+  }
 
   function handleAdd(e) {
     e.preventDefault();
@@ -274,10 +297,21 @@ export default function AttendanceModal({
       return;
     }
 
-    onAdd({ startDate, endDate, paymentMethod });
+    const newSubscriptionId = onAdd({ startDate, endDate, paymentMethod });
     setStartDate("");
     setPaymentMethod(PAYMENT_METHODS[0].value);
     setError("");
+
+    // Immediately open the new month's attendance/grades section so the
+    // admin can start recording it without hunting for it in the list.
+    if (newSubscriptionId != null) {
+      openRecordsFor({
+        id: newSubscriptionId,
+        attendance: [],
+        quizzes: [],
+        finalExam: "",
+      });
+    }
   }
 
   if (!student) return null;
@@ -297,39 +331,62 @@ export default function AttendanceModal({
     window.open(link, "_blank", "noopener,noreferrer");
   }
 
-  function handleSendMonthlyReport() {
-    const link = buildMonthlyReportWhatsAppLink({
-      studentName: student.name,
-      groupName,
-      subscriptions,
-      attendance: student.attendance || [],
-      quizzes: student.quizzes || [],
-      finalExam: student.finalExam,
-      parentPhone: student.parentPhone,
-    });
-    window.open(link, "_blank", "noopener,noreferrer");
+  function toggleExpandSubscription(sub) {
+    if (expandedSubscriptionId === sub.id) {
+      setExpandedSubscriptionId(null);
+      return;
+    }
+    openRecordsFor(sub);
   }
 
   function toggleAttendance(index) {
-    setAttendance((prev) =>
+    setDraftAttendance((prev) =>
       prev.map((present, i) => (i === index ? !present : present)),
     );
     setRecordsSaved(false);
   }
 
   function updateQuizGrade(index, value) {
-    setQuizzes((prev) => prev.map((grade, i) => (i === index ? value : grade)));
+    setDraftQuizzes((prev) =>
+      prev.map((grade, i) => (i === index ? value : grade)),
+    );
     setRecordsSaved(false);
   }
 
   function handleFinalExamChange(value) {
-    setFinalExamGrade(value);
+    setDraftFinalExam(value);
     setRecordsSaved(false);
   }
 
   function handleSaveRecords() {
-    onUpdateRecords({ attendance, quizzes, finalExam: finalExamGrade });
+    onUpdateSubscriptionRecords(expandedSubscriptionId, {
+      attendance: draftAttendance,
+      quizzes: draftQuizzes,
+      finalExam: draftFinalExam,
+    });
     setRecordsSaved(true);
+  }
+
+  function handleSendMonthlyReport(sub) {
+    // Persist whatever is currently entered before sending, so the report
+    // always reflects what the parent is about to be told.
+    onUpdateSubscriptionRecords(sub.id, {
+      attendance: draftAttendance,
+      quizzes: draftQuizzes,
+      finalExam: draftFinalExam,
+    });
+    setRecordsSaved(true);
+
+    const link = buildMonthlyReportWhatsAppLink({
+      studentName: student.name,
+      groupName,
+      subscriptions: [sub],
+      attendance: draftAttendance,
+      quizzes: draftQuizzes,
+      finalExam: draftFinalExam,
+      parentPhone: student.parentPhone,
+    });
+    window.open(link, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -395,69 +452,87 @@ export default function AttendanceModal({
               </div>
             ) : (
               <ul className="space-y-2">
-                {subscriptions.map((sub) => (
-                  <li
-                    key={sub.id}
-                    className="flex flex-col gap-2 rounded-xl border border-slate-100 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600">
-                      <span>
-                        <span className="text-slate-400">تاريخ البداية: </span>
-                        {sub.startDate}
-                      </span>
-                      <span>
-                        <span className="text-slate-400">تاريخ الانتهاء: </span>
-                        {sub.endDate}
-                      </span>
-                      <span>
-                        <span className="text-slate-400">طريقة الدفع: </span>
-                        {sub.paymentMethod}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                      <button
-                        type="button"
-                        onClick={() => handleSendReceipt(sub)}
-                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-green-600 hover:bg-green-50"
-                      >
-                        <WhatsAppIcon size={14} />
-                        ايصال
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeletingSubscription(sub)}
-                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
-                      >
-                        <Trash2 size={14} />
-                        حذف
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                {subscriptions.map((sub) => {
+                  const expanded = expandedSubscriptionId === sub.id;
+                  return (
+                    <li
+                      key={sub.id}
+                      className="rounded-xl border border-slate-100 p-3 text-sm"
+                    >
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600">
+                          <span>
+                            <span className="text-slate-400">
+                              تاريخ البداية:{" "}
+                            </span>
+                            {sub.startDate}
+                          </span>
+                          <span>
+                            <span className="text-slate-400">
+                              تاريخ الانتهاء:{" "}
+                            </span>
+                            {sub.endDate}
+                          </span>
+                          <span>
+                            <span className="text-slate-400">
+                              طريقة الدفع:{" "}
+                            </span>
+                            {sub.paymentMethod}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandSubscription(sub)}
+                            aria-expanded={expanded}
+                            className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50"
+                          >
+                            <ClipboardCheck size={14} />
+                            الحضور والدرجات
+                            <ChevronDown
+                              size={14}
+                              className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSendReceipt(sub)}
+                            className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-green-600 hover:bg-green-50"
+                          >
+                            <WhatsAppIcon size={14} />
+                            ايصال
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeletingSubscription(sub)}
+                            className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
+                          >
+                            <Trash2 size={14} />
+                            حذف
+                          </button>
+                        </div>
+                      </div>
+
+                      {expanded && (
+                        <div className="mt-3 border-t border-slate-100 pt-3">
+                          <AttendanceGradesSection
+                            attendance={draftAttendance}
+                            quizzes={draftQuizzes}
+                            finalExam={draftFinalExam}
+                            onToggleAttendance={toggleAttendance}
+                            onQuizChange={updateQuizGrade}
+                            onFinalExamChange={handleFinalExamChange}
+                            onSave={handleSaveRecords}
+                            onSendReport={() => handleSendMonthlyReport(sub)}
+                            saved={recordsSaved}
+                          />
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
-          </div>
-
-          <AttendanceGradesSection
-            attendance={attendance}
-            quizzes={quizzes}
-            finalExam={finalExamGrade}
-            onToggleAttendance={toggleAttendance}
-            onQuizChange={updateQuizGrade}
-            onFinalExamChange={handleFinalExamChange}
-            onSave={handleSaveRecords}
-            saved={recordsSaved}
-          />
-
-          <div className="border-t border-slate-100 pt-4">
-            <button
-              type="button"
-              onClick={handleSendMonthlyReport}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700"
-            >
-              <WhatsAppIcon size={16} />
-              إرسال التقرير الشهري
-            </button>
           </div>
         </div>
       </Modal>

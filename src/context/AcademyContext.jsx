@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import { initialGroups, generateId } from '../data/mockData'
+import { createEmptyMonthRecords } from '../constants'
 
 const AcademyContext = createContext(null)
 
@@ -57,7 +58,10 @@ export function AcademyProvider({ children }) {
     )
   }
 
+  // Returns the new subscription's id synchronously, so callers can e.g.
+  // auto-expand its attendance/grades section right after creating it.
   function addSubscription(groupId, studentId, subscription) {
+    const newSubscriptionId = generateId()
     setGroups((prev) =>
       prev.map((g) =>
         String(g.id) === String(groupId)
@@ -65,13 +69,20 @@ export function AcademyProvider({ children }) {
               ...g,
               students: g.students.map((s) =>
                 String(s.id) === String(studentId)
-                  ? { ...s, subscriptions: [...(s.subscriptions || []), { id: generateId(), ...subscription }] }
+                  ? {
+                      ...s,
+                      subscriptions: [
+                        ...(s.subscriptions || []),
+                        { id: newSubscriptionId, ...subscription, ...createEmptyMonthRecords() },
+                      ],
+                    }
                   : s
               ),
             }
           : g
       )
     )
+    return newSubscriptionId
   }
 
   function deleteSubscription(groupId, studentId, subscriptionId) {
@@ -86,6 +97,29 @@ export function AcademyProvider({ children }) {
                       ...s,
                       subscriptions: (s.subscriptions || []).filter(
                         (sub) => String(sub.id) !== String(subscriptionId)
+                      ),
+                    }
+                  : s
+              ),
+            }
+          : g
+      )
+    )
+  }
+
+  // Commits attendance/quizzes/finalExam for one subscription (one month).
+  function updateSubscriptionRecords(groupId, studentId, subscriptionId, records) {
+    setGroups((prev) =>
+      prev.map((g) =>
+        String(g.id) === String(groupId)
+          ? {
+              ...g,
+              students: g.students.map((s) =>
+                String(s.id) === String(studentId)
+                  ? {
+                      ...s,
+                      subscriptions: (s.subscriptions || []).map((sub) =>
+                        String(sub.id) === String(subscriptionId) ? { ...sub, ...records } : sub
                       ),
                     }
                   : s
@@ -116,6 +150,7 @@ export function AcademyProvider({ children }) {
     deleteStudent,
     addSubscription,
     deleteSubscription,
+    updateSubscriptionRecords,
   }
 
   return <AcademyContext.Provider value={value}>{children}</AcademyContext.Provider>

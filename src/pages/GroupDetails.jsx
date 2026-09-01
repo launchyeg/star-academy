@@ -12,7 +12,15 @@ import ConfirmDialog from '../components/ConfirmDialog'
  */
 export default function GroupDetails() {
   const { id } = useParams()
-  const { getGroup, addStudent, updateStudent, deleteStudent, addSubscription, deleteSubscription } = useAcademy()
+  const {
+    getGroup,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+    addSubscription,
+    deleteSubscription,
+    updateSubscriptionRecords,
+  } = useAcademy()
   const group = getGroup(id)
 
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -97,7 +105,9 @@ export default function GroupDetails() {
         groupName={group.name}
         onAdd={(subscription) => addSubscription(group.id, attendanceStudentId, subscription)}
         onDelete={(subscriptionId) => deleteSubscription(group.id, attendanceStudentId, subscriptionId)}
-        onUpdateRecords={(records) => updateStudent(group.id, attendanceStudentId, records)}
+        onUpdateSubscriptionRecords={(subscriptionId, records) =>
+          updateSubscriptionRecords(group.id, attendanceStudentId, subscriptionId, records)
+        }
       />
     </div>
   )
