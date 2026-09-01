@@ -1,5 +1,16 @@
 import { Link } from "react-router-dom";
-import { Star } from "lucide-react";
+import { Facebook, Instagram, Phone } from "lucide-react";
+import TikTokIcon from "../components/icons/TiktokIcon";
+import WhatsAppIcon from "../components/icons/WhatsAppIcon";
+import { siteConfig } from "../siteConfig";
+
+const SOCIAL_ICONS = {
+  facebook: Facebook,
+  instagram: Instagram,
+  tiktok: TikTokIcon,
+  whatsapp: WhatsAppIcon,
+  phone: Phone,
+};
 
 /**
  * Minimal public landing page with navbar, welcome message, and footer.
@@ -16,7 +27,7 @@ export default function Home() {
               className="w-9 h-9 object-contain"
             />
             <span className="text-base font-bold text-slate-800">
-              The Star Academy
+              {siteConfig.siteName}
             </span>
           </div>
 
@@ -32,7 +43,7 @@ export default function Home() {
       <main className="flex flex-1 items-center justify-center px-6 text-center">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-800 sm:text-4xl">
-            مرحبًا بك في The Star Academy
+            مرحبًا بك في {siteConfig.siteName}
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-slate-500">
             منصة إدارة أكاديمية بسيطة وحديثة لمتابعة المجموعات والطلاب بكل
@@ -42,14 +53,34 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-100 bg-white py-6 text-center text-sm text-slate-400">
-        The Star Academy © 2026 Developed by{" "}
+        {Object.entries(siteConfig.socialLinks).some(([, url]) => url) && (
+          <div className="mb-4 flex items-center justify-center gap-3">
+            {Object.entries(siteConfig.socialLinks).map(([platform, url]) => {
+              if (!url) return null;
+              const Icon = SOCIAL_ICONS[platform];
+              return (
+                <a
+                  key={platform}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={platform}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition-colors hover:bg-primary-50 hover:text-primary-600"
+                >
+                  {Icon && <Icon size={16} />}
+                </a>
+              );
+            })}
+          </div>
+        )}
+        {siteConfig.siteName} © {new Date().getFullYear()} Developed by{" "}
         <a
-          href="https://aaaportfolio.vercel.app/"
+          href={siteConfig.developer.url}
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold hover:underline"
         >
-          Launchy
+          {siteConfig.developer.name}
         </a>
       </footer>
     </div>

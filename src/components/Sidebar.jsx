@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { LayoutGrid, PlusCircle, Users2 } from "lucide-react";
+import { siteConfig } from "../siteConfig";
 
 const navItems = [
   { to: "/dashboard", label: "نظرة عامة", icon: LayoutGrid, end: true },
@@ -16,7 +17,9 @@ export default function Sidebar({ onNavigate }) {
       <div className="flex items-center gap-2 px-6 py-6">
         <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
         <div>
-          <p className="text-base font-bold text-slate-800">The Star Academy</p>
+          <p className="text-base font-bold text-slate-800">
+            {siteConfig.siteName}
+          </p>
           <p className="text-xs text-slate-400">لوحة التحكم</p>
         </div>
       </div>
@@ -52,16 +55,16 @@ export default function Sidebar({ onNavigate }) {
 
       <div className="border-t border-slate-100 px-6 py-4">
         <p className="text-xs text-slate-300">
-          The Star Academy © 2026 Developed by{" "}
+          {siteConfig.siteName} © {new Date().getFullYear()} Developed by{" "}
           <a
-            href="https://aaaportfolio.vercel.app/"
+            href={siteConfig.developer.url}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold hover:underline"
           >
-            Launchy
+            {siteConfig.developer.name}
           </a>{" "}
-          | v1.0.0
+          | v1.0.1
         </p>
       </div>
     </aside>

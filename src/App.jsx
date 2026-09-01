@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { AcademyProvider } from './context/AcademyContext'
@@ -9,8 +10,16 @@ import DashboardOverview from './pages/DashboardOverview'
 import CreateGroup from './pages/CreateGroup'
 import Groups from './pages/Groups'
 import GroupDetails from './pages/GroupDetails'
+import { siteConfig } from './siteConfig'
 
 export default function App() {
+  // index.html's <title> is static markup read before React mounts, so it
+  // can't pull from siteConfig directly — set it here once on load instead,
+  // keeping the tab title in sync with everything else siteConfig drives.
+  useEffect(() => {
+    document.title = siteConfig.siteName
+  }, [])
+
   return (
     <AuthProvider>
       <AcademyProvider>

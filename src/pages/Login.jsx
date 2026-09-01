@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Star, Lock, Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { siteConfig } from "../siteConfig";
 
 /**
  * Admin login form, backed by Supabase Auth (see AuthContext).
@@ -40,7 +41,7 @@ export default function Login() {
           />
           <h1 className="text-xl font-bold text-slate-800">تسجيل الدخول</h1>
           <p className="text-sm text-slate-400">
-            مرحبًا بك مجددًا في The Star Academy
+            مرحبًا بك مجددًا في {siteConfig.siteName}
           </p>
         </div>
 

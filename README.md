@@ -1,6 +1,6 @@
-# The Star Academy
+# The Stars Academy
 
-A frontend-only admin dashboard for managing an academy's groups and students: create groups, enroll students, track monthly subscriptions/payments, record attendance and grades, and send payment receipts and monthly reports straight to a parent's WhatsApp. There is no backend yet — all data lives in React state (seeded from mock data) and resets on page refresh; the API surface is shaped so it can be swapped for real network calls later without touching the UI.
+An admin dashboard for managing an academy's groups and students: create groups, enroll students, track monthly subscriptions/payments, record attendance and grades, and send payment receipts and monthly reports straight to a parent's WhatsApp. The backend is [Supabase](https://supabase.com) (hosted Postgres) — all groups/students/subscriptions data is persisted there, and admin login is real Supabase Auth rather than a client-side check.
 
 ## 1. Installation
 
@@ -10,14 +10,16 @@ npm install
 
 ## 2. Configuration
 
-The admin login is a temporary, frontend-only gate (no backend/API call) checked against credentials from a local `.env` file:
+The app needs a Supabase project (tables + Auth). Create a `.env` file with:
 
 ```bash
-VITE_ADMIN_USERNAME=your-username
-VITE_ADMIN_PASSWORD=your-password
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon/publishable-key
 ```
 
-The logged-in state is persisted to `localStorage`, so a page refresh keeps the admin signed in until they log out.
+Both values come from your Supabase project's **Settings → API** page. The publishable/anon key is safe to expose client-side — access is actually controlled by the Row Level Security policies on each table (see [Backend](#4-backend--database) below), not by keeping this key secret.
+
+There is no public sign-up — the admin account is created directly in the Supabase dashboard under **Authentication → Users**, with **Allow new users to sign up** turned off. The login form authenticates against that account's email/password, and the session is managed by `supabase-js` and persists across page refreshes until logout.
 
 ## 3. Run project
 
@@ -31,20 +33,34 @@ npm run preview    # Preview the production version locally
 npm run lint        # Run ESLint
 ```
 
-### Login
+## 4. Backend / Database
 
-The login form validates the entered username/password against `VITE_ADMIN_USERNAME` / `VITE_ADMIN_PASSWORD` and, on success, takes you to `/dashboard`.
+Three tables in Postgres, all with Row Level Security enabled (only authenticated requests may read/write; anonymous requests are blocked entirely):
 
-## 4. Folder Structure
+```
+groups (id, name)
+  └─ students (id, group_id, name, phone, parent_phone, price)
+       └─ subscriptions (id, student_id, start_date, end_date, payment_method,
+                          attendance[], quizzes[], final_exam, note)
+```
+
+- One subscription = one month's record set — `attendance`/`quizzes` are fixed-length array columns (see `RECORD_SLOTS` in `src/constants.js`) holding that month's per-session attendance and quiz grades.
+- `src/lib/supabaseClient.js` creates the shared Supabase client from the env vars above.
+- `src/context/AcademyContext.jsx` is the only place that talks to the `groups`/`students`/`subscriptions` tables — it fetches the full group/student/subscription tree on load, maps the DB's snake_case columns to the camelCase shape the UI expects, and re-syncs after every mutation. No other component queries Supabase directly.
+- `src/context/AuthContext.jsx` wraps Supabase Auth (`signInWithPassword` / `onAuthStateChange` / `signOut`) for the admin session.
+
+## 5. Folder Structure
 
 ```
 src/
   components/
+    icons/
+      WhatsAppIcon.jsx       # Shared WhatsApp glyph (not in lucide-react's icon set)
     AddStudentModal.jsx     # Add-student form (name, phone, parent phone, price, payment method)
     AttendanceModal.jsx     # Per-student subscriptions: attendance, quiz grades, final exam grade, notes
     ConfirmDialog.jsx       # Generic confirm-before-delete dialog
     GroupCard.jsx           # Group summary card (used in the Groups list)
-    Header.jsx              # Top bar (admin name, logout)
+    Header.jsx              # Top bar (admin email, logout)
     Modal.jsx               # Base modal shell
     ProtectedRoute.jsx      # Redirects to /login when not authenticated
     Sidebar.jsx             # Dashboard side navigation
@@ -52,11 +68,11 @@ src/
     StudentTable.jsx        # Students table inside a group's page
 
   context/
-    AuthContext.jsx         # Frontend-only admin auth (see Configuration above)
-    AcademyContext.jsx      # All academy data + actions (groups, students, subscriptions, records)
+    AuthContext.jsx         # Supabase Auth session (see Configuration above)
+    AcademyContext.jsx      # All academy data + actions, backed by Supabase (see Backend above)
 
-  data/
-    mockData.js              # Seed data used to demonstrate the UI
+  lib/
+    supabaseClient.js        # Shared Supabase client instance
 
   layouts/
     DashboardLayout.jsx      # Sidebar + header shell wrapping every /dashboard/* page
@@ -72,13 +88,14 @@ src/
   utils/
     whatsapp.js               # Builds wa.me links for payment receipts and monthly reports
 
+  siteConfig.js                # Site name, social links, developer credit — edit here to update them everywhere
   constants.js                 # Shared constants (attendance slot count, empty month-record shape)
   App.jsx
   main.jsx
   index.css
 ```
 
-## 5. Routes
+## 6. Routes
 
 | The path                  | Page                      |
 | ------------------------- | ------------------------- |
@@ -89,7 +106,7 @@ src/
 | `/dashboard/groups`       | All Groups                |
 | `/dashboard/groups/:id`   | Group Details             |
 
-## 6. Core Features
+## 7. Core Features
 
 - **Groups & students** — create groups, add/edit/delete students (name, phone, parent phone, monthly price).
 - **Monthly subscriptions** — add a subscription with a start date (end date auto-computed 30 days later) and a payment method (Cash / InstaPay / Vodafone Cash).
@@ -99,10 +116,13 @@ src/
   - a **monthly report** (subscription/payment history, attendance summary, quiz grades, final exam grade, and notes).
 - **Dashboard overview** — total groups, total students, total monthly revenue, and a "most populated groups" breakdown.
 
-## 7. Technical Notes
+## 8. Site Configuration
+
+`src/siteConfig.js` centralizes site-wide identity: the site name (shown in the browser tab, login page, sidebar, footer, and WhatsApp message signatures), social links (rendered as icons in the Home page footer — only entries with a non-empty URL are shown), and the developer credit. Edit that one file to update these across the whole site.
+
+## 9. Technical Notes
 
 - The application's general orientation is RTL (`dir="rtl"`), and the side menu is always on the right side of the screen. The font used is **Tajawal** (loaded from Google Fonts) to best support the appearance of Arabic text. All in-app UI text is in Arabic; this README is in English.
 - Icons: `lucide-react`; animations and transitions: `framer-motion`.
 - Styling: Tailwind CSS. The brand `primary` color scale is defined in `tailwind.config.js` (currently an amber/orange ramp anchored at `primary-600 = #FFA617` and `primary-700 = #fd9a00`).
-- All data logic (groups, students, subscriptions, attendance/grade records) is isolated in `src/context/AcademyContext.jsx`, making it easy to replace later with actual API calls without modifying the other components. Data is in-memory only — nothing is persisted to a server, and a page refresh resets it to the seed data in `src/data/mockData.js`.
-- Admin authentication is a temporary, frontend-only check (see Configuration) — there is no real backend verification yet.
+- Data and auth: see [Backend / Database](#4-backend--database) above.

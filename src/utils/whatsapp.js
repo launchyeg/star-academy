@@ -1,3 +1,5 @@
+import { siteConfig } from "../siteConfig";
+
 /**
  * Normalizes an Egyptian local phone number (e.g. "01012345678") into the
  * international digits-only format WhatsApp's wa.me links expect
@@ -34,7 +36,7 @@ export function buildReceiptWhatsAppLink({
 طريقة الدفع: ${paymentMethod}
 
 شكرًا لكم،
-The Star Academy`;
+${siteConfig.siteName}`;
 
   const phone = normalizeEgyptPhone(parentPhone);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -103,7 +105,7 @@ ${quizzesList}
 ${note || "-"}
 
 شكرًا لكم،
-The Star Academy`;
+${siteConfig.siteName}`;
 
   const phone = normalizeEgyptPhone(parentPhone);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
