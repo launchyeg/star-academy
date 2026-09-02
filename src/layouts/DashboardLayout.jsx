@@ -1,27 +1,28 @@
-import { useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
-import Sidebar from '../components/Sidebar'
-import Header from '../components/Header'
+import { useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import Sidebar from "../components/Sidebar";
+import Header from "../components/Header";
 
 const titles = {
-  '/dashboard': 'نظرة عامة',
-  '/dashboard/create-group': 'إنشاء مجموعة',
-  '/dashboard/groups': 'المجموعات',
-}
+  "/dashboard": "نظرة عامة",
+  "/dashboard/create-group": "إنشاء مجموعة",
+  "/dashboard/groups": "المجموعات",
+  "/dashboard/data-center": "مركز البيانات",
+};
 
 function getTitle(pathname) {
-  if (titles[pathname]) return titles[pathname]
-  if (pathname.startsWith('/dashboard/groups/')) return 'تفاصيل المجموعة'
-  return 'لوحة التحكم'
+  if (titles[pathname]) return titles[pathname];
+  if (pathname.startsWith("/dashboard/groups/")) return "تفاصيل المجموعة";
+  return "لوحة التحكم";
 }
 
 /**
  * Shared RTL dashboard shell: right-side sidebar + top header + page outlet.
  */
 export default function DashboardLayout() {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const location = useLocation()
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <div dir="rtl" className="flex h-screen overflow-hidden bg-slate-50">
@@ -55,11 +56,14 @@ export default function DashboardLayout() {
       </AnimatePresence>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header title={getTitle(location.pathname)} onMenuClick={() => setMobileOpen(true)} />
+        <Header
+          title={getTitle(location.pathname)}
+          onMenuClick={() => setMobileOpen(true)}
+        />
         <main className="scrollbar-thin flex-1 overflow-y-auto p-4 sm:p-8">
           <Outlet />
         </main>
       </div>
     </div>
-  )
+  );
 }

@@ -10,6 +10,7 @@ import DashboardOverview from './pages/DashboardOverview'
 import CreateGroup from './pages/CreateGroup'
 import Groups from './pages/Groups'
 import GroupDetails from './pages/GroupDetails'
+import DataCenter from './pages/DataCenter'
 import { siteConfig } from './siteConfig'
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="create-group" element={<CreateGroup />} />
             <Route path="groups" element={<Groups />} />
             <Route path="groups/:id" element={<GroupDetails />} />
+            <Route path="data-center" element={<DataCenter />} />
           </Route>
         </Routes>
       </AcademyProvider>

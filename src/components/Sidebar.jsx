@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { LayoutGrid, PlusCircle, Users2 } from "lucide-react";
+import { Database, LayoutGrid, PlusCircle, Users2 } from "lucide-react";
 import { siteConfig } from "../siteConfig";
 
 const navItems = [
   { to: "/dashboard", label: "نظرة عامة", icon: LayoutGrid, end: true },
   { to: "/dashboard/create-group", label: "إنشاء مجموعة", icon: PlusCircle },
   { to: "/dashboard/groups", label: "المجموعات", icon: Users2 },
+  { to: "/dashboard/data-center", label: "مركز البيانات", icon: Database },
 ];
 
 /**
