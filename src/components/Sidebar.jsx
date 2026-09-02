@@ -65,7 +65,7 @@ export default function Sidebar({ onNavigate }) {
           >
             {siteConfig.developer.name}
           </a>{" "}
-          | v1.0.1
+          | v1.0.2
         </p>
       </div>
     </aside>

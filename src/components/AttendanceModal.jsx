@@ -59,16 +59,23 @@ function DateField({ label, value, onChange, disabled, hint }) {
             disabled ? "text-slate-400" : "text-slate-400"
           }`}
         />
-        <input
-          ref={inputRef}
-          type="date"
-          value={value}
-          disabled={disabled}
-          readOnly={disabled}
-          title={hint}
-          onChange={onChange}
-          className="w-full appearance-none bg-transparent px-3 py-2.5 text-sm text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-500 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
-        />
+        <div className="relative w-full">
+          {!value && (
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-400">
+              اختر التاريخ
+            </span>
+          )}
+          <input
+            ref={inputRef}
+            type="date"
+            value={value}
+            disabled={disabled}
+            readOnly={disabled}
+            title={hint}
+            onChange={onChange}
+            className="w-full appearance-none bg-transparent px-3 py-2.5 text-sm text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-500 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
+          />
+        </div>
       </div>
     </div>
   );
