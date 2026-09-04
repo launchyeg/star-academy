@@ -56,8 +56,8 @@ export default function GroupDetails() {
     group.students.find((s) => String(s.id) === String(attendanceStudentId)) ||
     null;
 
-  function handleAddStudent(studentData) {
-    addStudent(group.id, studentData);
+  async function handleAddStudent(studentData) {
+    await addStudent(group.id, studentData);
   }
 
   function handleEditStudent(studentData) {

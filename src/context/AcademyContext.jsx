@@ -129,6 +129,19 @@ export function AcademyProvider({ children }) {
   }
 
   async function addStudent(groupId, student) {
+    const name = student.name.trim()
+
+    // Same student name shouldn't be registered twice within the same group
+    // — checked against the already-loaded tree instead of an extra round
+    // trip. The same student can still exist in another group.
+    const targetGroup = groups.find((g) => String(g.id) === String(groupId))
+    const isDuplicate = (targetGroup?.students || []).some(
+      (s) => s.name.trim().toLowerCase() === name.toLowerCase(),
+    )
+    if (isDuplicate) {
+      throw new Error('هذا الطالب مسجل بالفعل في هذه المجموعة')
+    }
+
     const { error: insertError } = await supabase.from('students').insert({
       group_id: groupId,
       name: student.name,

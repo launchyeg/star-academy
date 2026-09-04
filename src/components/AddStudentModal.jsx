@@ -16,6 +16,7 @@ export default function AddStudentModal({
   const isEditMode = Boolean(initialData);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -37,7 +38,7 @@ export default function AddStudentModal({
     return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     if (
@@ -55,13 +56,21 @@ export default function AddStudentModal({
       return;
     }
 
-    onSubmit({
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      parentPhone: form.parentPhone.trim(),
-      price: Number(form.price),
-    });
-    onClose();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        parentPhone: form.parentPhone.trim(),
+        price: Number(form.price),
+      });
+      onClose();
+    } catch (err) {
+      setError(err.message || "حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -136,9 +145,14 @@ export default function AddStudentModal({
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700"
+            disabled={isSubmitting}
+            className="rounded-xl bg-primary-600 px-5 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isEditMode ? "حفظ التعديلات" : "إضافة الطالب"}
+            {isSubmitting
+              ? "جارٍ الحفظ..."
+              : isEditMode
+                ? "حفظ التعديلات"
+                : "إضافة الطالب"}
           </button>
         </div>
       </form>
