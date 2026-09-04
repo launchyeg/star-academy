@@ -38,9 +38,7 @@ export default function CreateGroup() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">إنشاء مجموعة</h2>
-            <p className="text-sm text-slate-400">
-              أضف مجموعة جديدة إلى الأكاديمية
-            </p>
+            <p className="text-sm text-slate-400">أضف مجموعة جديدة</p>
           </div>
         </div>
 
