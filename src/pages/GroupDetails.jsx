@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { UserPlus, Users2, ChevronRight, Search } from "lucide-react";
+import { UserPlus, Users2, ChevronRight, Search, Wallet } from "lucide-react";
 import { useAcademy } from "../context/AcademyContext";
 import StudentTable from "../components/StudentTable";
+import StatCard from "../components/StatCard";
 import AddStudentModal from "../components/AddStudentModal";
 import AttendanceModal from "../components/AttendanceModal";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -35,7 +36,9 @@ export default function GroupDetails() {
     return group.students.filter(
       (student) =>
         student.name?.toLowerCase().includes(query) ||
-        String(student.id ?? "").toLowerCase().includes(query) ||
+        String(student.id ?? "")
+          .toLowerCase()
+          .includes(query) ||
         student.phone?.toLowerCase().includes(query),
     );
   }, [group, searchQuery]);
@@ -43,6 +46,11 @@ export default function GroupDetails() {
   if (!group) {
     return <Navigate to="/dashboard/groups" replace />;
   }
+
+  const totalMonthlySubscriptions = group.students.reduce(
+    (sum, student) => sum + Number(student.price || 0),
+    0,
+  );
 
   const attendanceStudent =
     group.students.find((s) => String(s.id) === String(attendanceStudentId)) ||
@@ -66,6 +74,13 @@ export default function GroupDetails() {
         <ChevronRight size={16} />
         العودة إلى المجموعات
       </Link>
+
+      <StatCard
+        icon={Wallet}
+        label="إجمالي الاشتراكات الشهرية"
+        value={`${totalMonthlySubscriptions} ج.م`}
+        accent="amber"
+      />
 
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -110,9 +125,7 @@ export default function GroupDetails() {
         onDelete={(student) => setDeletingStudent(student)}
         onAttendance={(student) => setAttendanceStudentId(student.id)}
         emptyMessage={
-          searchQuery.trim()
-            ? "لا يوجد طلاب مطابقين لبحثك"
-            : undefined
+          searchQuery.trim() ? "لا يوجد طلاب مطابقين لبحثك" : undefined
         }
       />
 
