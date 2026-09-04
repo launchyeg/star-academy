@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { UserPlus, Users2, ChevronRight } from "lucide-react";
+import { UserPlus, Users2, ChevronRight, Search } from "lucide-react";
 import { useAcademy } from "../context/AcademyContext";
 import StudentTable from "../components/StudentTable";
 import AddStudentModal from "../components/AddStudentModal";
@@ -27,6 +27,18 @@ export default function GroupDetails() {
   const [editingStudent, setEditingStudent] = useState(null);
   const [deletingStudent, setDeletingStudent] = useState(null);
   const [attendanceStudentId, setAttendanceStudentId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredStudents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query || !group) return group?.students ?? [];
+    return group.students.filter(
+      (student) =>
+        student.name?.toLowerCase().includes(query) ||
+        String(student.id ?? "").toLowerCase().includes(query) ||
+        student.phone?.toLowerCase().includes(query),
+    );
+  }, [group, searchQuery]);
 
   if (!group) {
     return <Navigate to="/dashboard/groups" replace />;
@@ -78,11 +90,30 @@ export default function GroupDetails() {
         </button>
       </div>
 
+      <div className="relative">
+        <Search
+          size={18}
+          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+        />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="ابحث باسم الطالب أو رقم هاتف الطالب..."
+          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-4 pr-11 text-sm outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+        />
+      </div>
+
       <StudentTable
-        students={group.students}
+        students={filteredStudents}
         onEdit={(student) => setEditingStudent(student)}
         onDelete={(student) => setDeletingStudent(student)}
         onAttendance={(student) => setAttendanceStudentId(student.id)}
+        emptyMessage={
+          searchQuery.trim()
+            ? "لا يوجد طلاب مطابقين لبحثك"
+            : undefined
+        }
       />
 
       <AddStudentModal

@@ -56,9 +56,11 @@ src/
   components/
     icons/
       WhatsAppIcon.jsx       # Shared WhatsApp glyph (not in lucide-react's icon set)
+      TikTokIcon.jsx         # Shared TikTok glyph (not in lucide-react's icon set)
     AddStudentModal.jsx     # Add-student form (name, phone, parent phone, price, payment method)
     AttendanceModal.jsx     # Per-student subscriptions: attendance, quiz grades, final exam grade, notes
     ConfirmDialog.jsx       # Generic confirm-before-delete dialog
+    EditGroupModal.jsx      # Rename-group form (used from the Groups page)
     GroupCard.jsx           # Group summary card (used in the Groups list)
     Header.jsx              # Top bar (admin email, logout)
     Modal.jsx               # Base modal shell
@@ -84,6 +86,7 @@ src/
     CreateGroup.jsx
     Groups.jsx
     GroupDetails.jsx
+    DataCenter.jsx            # Read-only, all-students table + one-click Excel export
 
   utils/
     whatsapp.js               # Builds wa.me links for payment receipts and monthly reports
@@ -105,16 +108,18 @@ src/
 | `/dashboard/create-group` | Create Group              |
 | `/dashboard/groups`       | All Groups                |
 | `/dashboard/groups/:id`   | Group Details             |
+| `/dashboard/data-center`  | Data Center (export)      |
 
 ## 7. Core Features
 
-- **Groups & students** — create groups, add/edit/delete students (name, phone, parent phone, monthly price).
+- **Groups & students** — create groups (and rename/delete them), add/edit/delete students (name, phone, parent phone, monthly price).
 - **Monthly subscriptions** — add a subscription with a start date (end date auto-computed 30 days later) and a payment method (Cash / InstaPay / Vodafone Cash).
 - **Attendance & grades per subscription** — each subscription (one month) carries its own record set: attendance toggles, quiz grades, a final exam grade, and a free-text note. Records are edited as a draft and committed together via an explicit "Save" action.
 - **WhatsApp integration** (`src/utils/whatsapp.js`) — one click opens a pre-filled WhatsApp message to the student's parent for:
   - a **payment receipt** (subscription price, period, payment method), and
   - a **monthly report** (subscription/payment history, attendance summary, quiz grades, final exam grade, and notes).
 - **Dashboard overview** — total groups, total students, total monthly revenue, and a "most populated groups" breakdown.
+- **Data Center** (`/dashboard/data-center`) — a read-only table of every student across every group (name, phone, parent phone) with a one-click export to an `.xlsx` file (via the `xlsx` package), meant for feeding student/parent phone numbers into ad platforms like Meta Ads.
 
 ## 8. Site Configuration
 
@@ -123,6 +128,6 @@ src/
 ## 9. Technical Notes
 
 - The application's general orientation is RTL (`dir="rtl"`), and the side menu is always on the right side of the screen. The font used is **Tajawal** (loaded from Google Fonts) to best support the appearance of Arabic text. All in-app UI text is in Arabic; this README is in English.
-- Icons: `lucide-react`; animations and transitions: `framer-motion`.
+- Icons: `lucide-react`; animations and transitions: `framer-motion`; Excel export (Data Center page): `xlsx`.
 - Styling: Tailwind CSS. The brand `primary` color scale is defined in `tailwind.config.js` (currently an amber/orange ramp anchored at `primary-600 = #FFA617` and `primary-700 = #fd9a00`).
 - Data and auth: see [Backend / Database](#4-backend--database) above.

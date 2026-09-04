@@ -9,6 +9,7 @@ export default function StudentTable({
   onEdit,
   onDelete,
   onAttendance,
+  emptyMessage = "لا يوجد طلاب في هذه المجموعة بعد",
 }) {
   if (students.length === 0) {
     return (
@@ -16,9 +17,7 @@ export default function StudentTable({
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-300">
           <UserRound size={24} />
         </div>
-        <p className="text-sm text-slate-400">
-          لا يوجد طلاب في هذه المجموعة بعد
-        </p>
+        <p className="text-sm text-slate-400">{emptyMessage}</p>
       </div>
     );
   }
